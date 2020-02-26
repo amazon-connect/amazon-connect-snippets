@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: |
+  Serverless backend to support additional Amazon Connect functionality
+Globals:
+  Function:
+    Timeout: 5
+    Runtime: python3.7
+    Handler: index.lambda_handler
+
+Resources:
+  GetHotMessageLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      InlineCode: |
+        import boto3
+        import json
+        import os
+        import decimal
+        import time
+        from boto3.dynamodb.conditions import Key, Attr
+
+        print('Loading function')
+
+        dynamodb = boto3.resource('dynamodb')
+        table = dynamodb.Table(os.environ['HotMessageTable'])
+
+        def lambda_handler(event, context):
+            print(event)
+            
+            active_message = 'False'
+            now = int(time.time())
+
+            resp = table.scan(
+                FilterExpression =Key('EndTimeStamp').gte(now)
+                    )
+
+            description = 'NA'
+
+            if resp['Count'] == 0:
+                ans = {
+                    'ActiveMessage': active_message,
+                    'Message': description
+                }
+                return ans
+
+            items = resp['Items']
+            ans = {
+                'ActiveMessage': active_message,
+                'Message': description
+            }
+            for item in items:
+                if item['StartTimeStamp'] <= now:
+                    ans['Message'] = item['Message']
+                    ans['ActiveMessage'] = 'True'
+                    return ans
+              
+            return ans
+          
+      Environment:
+        Variables:
+          HotMessageTable: !Ref HotMessageTable
+      Policies:
+        - DynamoDBCrudPolicy: 
+            TableName: !Ref HotMessageTable
+  HotMessageTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      BillingMode: PAY_PER_REQUEST 
+      AttributeDefinitions:
+        - AttributeName: EndTimeStamp
+          AttributeType: N
+        - AttributeName: StartTimeStamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: EndTimeStamp
+          KeyType: HASH
+        - AttributeName: StartTimeStamp
+          KeyType: RANGE

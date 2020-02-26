@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Parameters:
+  ConnectInstanceArn:
+    Type: String
+    Default: "AMAZON_CONNECT_INSTANCE_ARN"
+  SAMAlias:
+    Type: String
+    Default: "PROD"
+    
+ 
+Globals:
+  Function:
+    Timeout: 3
+    AutoPublishAlias: !Ref SAMAlias
+    DeploymentPreference:
+      Type: Linear10PercentEvery1Minute
+      Alarms:
+        - !Ref AliasErrorMetricGreaterThanZeroAlarm
+
+Resources:
+  ConnectLambdaFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12.x
+      InlineCode: |
+        "use strict";
+
+        exports.handler = (event, context, callback) => {
+            callback(null,{"Success":"True"});
+        };
+        
+  AliasErrorMetricGreaterThanZeroAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: ConnectLambdaFunction
+    Properties:
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ConnectLambdaFunction
+      EvaluationPeriods: 1
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Period: '60'
+      Statistic: Sum
+      Threshold: '5'
+
+  ConnectLambdaFunctionPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: ConnectLambdaFunction
+    Properties:
+      FunctionName: !Ref ConnectLambdaFunction.Alias
+      Action: 'lambda:InvokeFunction'
+      Principal: 'connect.amazonaws.com'
+      SourceAccount: !Ref 'AWS::AccountId'
+      SourceArn: !Ref ConnectInstanceArn
+      
+Outputs:
+  ConnectLambdaFunction:
+    Description: "Connect Lambda Function ARN"
+    Value: !GetAtt ConnectLambdaFunction.Arn

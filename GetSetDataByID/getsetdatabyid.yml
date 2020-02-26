@@ -1,0 +1,147 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: |
+  Serverless backend to support additional Amazon Connect functionality
+Globals:
+  Function:
+    Timeout: 5
+    Runtime: python3.7
+    Handler: index.lambda_handler
+
+Resources:
+  UpdateUserDataLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      InlineCode: |
+        import boto3
+        import os
+        import time
+
+        ddb = boto3.resource('dynamodb')
+        tb_name = os.environ['UserDataTable']
+        table = ddb.Table(tb_name)    
+
+        def expression_builder(params):
+          exp = "set "
+          exp_values = {}
+          
+          for key in params.keys():
+            temp_key = ":{}".format(key)
+            exp = exp + "{} = {},".format(key, temp_key)
+            exp_values[temp_key] = params[key]
+            
+          return exp[:-1], exp_values
+          
+
+        def lambda_handler(event, context):
+          print(event)
+
+          now = int(time.time())
+          params = event["Details"]["Parameters"] 
+          key = params.pop('CustomerId', None)
+          params["LastUpdateTime"] = now
+          update_expression, update_expression_values = expression_builder(params)
+          print(update_expression, update_expression_values)
+          try:
+            resp = table.update_item(
+              Key={
+                'CustomerId': key
+              },
+              UpdateExpression=update_expression,
+              ExpressionAttributeValues = update_expression_values
+            )
+
+            return {"Success":"True"}
+          except Exception as e:
+            print(e)
+            return {"Success":"False"}
+
+
+      Policies:
+        - DynamoDBCrudPolicy: 
+            TableName: !Ref UserDataTable
+      Environment:
+        Variables:
+          UserDataTable: !Ref UserDataTable
+  PutUserDataLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      InlineCode: |
+          import boto3
+          import os
+          import time
+
+          ddb = boto3.resource('dynamodb')
+          tb_name = os.environ['UserDataTable']
+          table = ddb.Table(tb_name)    
+          
+          def lambda_handler(event, context):
+              print(event)
+
+              now = int(time.time())
+              data = event["Details"]["Parameters"] 
+              data["LastUpdateTime"] = now
+              
+              try:
+                resp = table.put_item(
+                    Item=data
+                )
+
+                return {"Success":"True"}
+              except Exception as e:
+                print(e)
+                return {"Success":"False"}
+
+      Policies:
+        - DynamoDBCrudPolicy: 
+            TableName: !Ref UserDataTable
+      Environment:
+        Variables:
+          UserDataTable: !Ref UserDataTable
+  GetUserDataLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      InlineCode: |
+          import boto3
+          import os
+          import time
+
+          ddb = boto3.resource('dynamodb')
+          tb_name = os.environ['UserDataTable']
+          table = ddb.Table(tb_name)    
+          
+          def lambda_handler(event, context):
+              print(event)
+
+              now = int(time.time())
+              try:   
+                customer_id = event["Details"]["Parameters"] ["CustomerId"]
+                key = {
+                  "CustomerId": customer_id
+                } 
+                resp = table.get_item(
+                    Key=key
+                )
+
+                if "Item" in resp:
+                  data = resp["Item"]
+                  data["CustomerStatus"] = "KNOWN"
+                  return data
+                else:
+                  return {"CustomerStatus": "UNKNOWN"}
+              except Exception as e:
+                print(e)
+                return {"CustomerStatus": "UNKNOWN"}
+
+      Policies:
+        - DynamoDBCrudPolicy: 
+            TableName: !Ref UserDataTable
+      Environment:
+        Variables:
+          UserDataTable: !Ref UserDataTable
+  UserDataTable:
+    Type: 'AWS::Serverless::SimpleTable'
+    Properties:
+        PrimaryKey:
+          Name: CustomerId
+          Type: String

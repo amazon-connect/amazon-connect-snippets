@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: |
+  Serverless backend to support additional Amazon Connect functionality
+Globals:
+  Function:
+    Timeout: 5
+    Runtime: python3.7
+    Handler: index.lambda_handler
+
+Resources:
+
+  ContactLookupLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      InlineCode: |
+          import boto3
+          import os
+          import time
+
+          ddb = boto3.resource('dynamodb')
+          tb_name = os.environ['ContactHistoryTable']
+          table = ddb.Table(tb_name)    
+          
+          def lambda_handler(event, context):
+              print(event)
+
+              now = int(time.time())
+              contact_id = event["Details"]["Parameters"]["CustomerNumber"] 
+              
+              resp = table.update_item(
+                  Key={"ContactId": contact_id},
+                  UpdateExpression="SET LastCall = :n",
+                  ExpressionAttributeValues={
+                      ':n': now
+                  },
+                  ReturnValues="ALL_OLD"
+              )
+              if 'Attributes' in resp:
+                  return {"ContactStatus": "return_caller"}
+              else:
+                  resp = table.put_item(Item={"ContactId": contact_id})
+                  return {"ContactStatus": "new_caller"}
+      Policies:
+        - DynamoDBCrudPolicy: 
+            TableName: !Ref ContactHistoryTable
+      Environment:
+        Variables:
+          ContactHistoryTable: !Ref ContactHistoryTable
+
+
+
+
+
+  ContactHistoryTable:
+    Type: 'AWS::Serverless::SimpleTable'
+    Properties:
+        PrimaryKey:
+          Name: ContactId
+          Type: String

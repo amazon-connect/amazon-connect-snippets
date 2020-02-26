@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Parameters:
+  ConnectInstanceArn:
+    Type: String
+    Default: "your instance ARN"
+  SourceAccountId:
+    Type: String
+    Default: "instance account id"
+
+Resources:
+  ConnectLambdaFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12.x
+      InlineCode: |
+        "use strict";
+        var region = process.env.REGION;
+        var accountId = process.env.ACCOUNT_ID;
+
+        exports.handler = (event, context, callback) => {
+            callback(null,{"Region":region, "AccountId":accountId});
+        };
+      Environment:
+          Variables:
+            ACCOUNT_ID: !Ref 'AWS::AccountId'
+            REGION: !Ref 'AWS::Region'
+
+
+  ConnectLambdaFunctionPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: ConnectLambdaFunction
+    Properties:
+      FunctionName: !Ref ConnectLambdaFunction
+      Action: 'lambda:InvokeFunction'
+      Principal: 'connect.amazonaws.com'
+      SourceAccount: !Ref SourceAccountId
+      SourceArn: !Ref ConnectInstanceArn
+      
+Outputs:
+  ConnectLambdaFunction:
+    Description: "Connect Lambda Function ARN"
+    Value: !GetAtt ConnectLambdaFunction.Arn
