@@ -8,7 +8,7 @@ This repo is a collection of Cloudformation templates and snippets of solutions 
 The repo is designed to facilitate adoption of Amazon Connect by showcasing its ability to utilize other AWS services like AWS Lambda, Amazon Lex, and Amazon DynamoDB.  Using these snippets, you can accelerate development of services that support Amazon Connect as part of a workshop, hackathon, or PoC development.
 
 ## How do I use it?
-Each project contains an Amazon Cloudformation template or deployment guide as part of its directory.  Since each project is self contained (though some may have been used to develop others), there is no set up required outside of setting up your first Amazon Connect instance.  Each project will additionally include information or Contact Flows to 
+Each project contains an Amazon Cloudformation template or deployment guide as part of its directory.  Since each project is self contained (though some may have been used to develop others), there is no set up required outside of setting up your first Amazon Connect instance.  Each project will additionally include information or Contact Flows to guide implementation.
 
 ## Which projects are currently active?
  - **CallerHistory**: The caller history project utilizes AWS Lambda and Amazon DynamoDB to record if an individual has contacted previously though a user defined identifier and records time of last contact.
