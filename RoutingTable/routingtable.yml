@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: |
+  Serverless backend to support additional Amazon Connect functionality
+
+Globals:
+  Function:
+    Timeout: 5
+    Runtime: python3.7
+    Handler: index.lambda_handler
+
+Resources:
+
+  ContactRoutingLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      InlineCode: |
+        import boto3
+        import os
+        import time
+
+        ddb = boto3.resource('dynamodb')
+        tb_name = os.environ['RoutingTable']
+        primary_key = os.environ['TablePrimaryKey']
+        table = ddb.Table(tb_name)    
+        
+        def lambda_handler(event, context):
+            try:   
+              key_value = event["Details"]["Parameters"]["RoutingFeature"]
+              key = {
+                primary_key: key_value
+              } 
+              resp = table.get_item(
+                  Key=key
+              )
+
+              if "Item" in resp:
+                data = resp["Item"]
+                data["ItemStatus"] = "KNOWN"
+                return data
+              else:
+                return {"ItemStatus": "UNKNOWN"}
+            except Exception as e:
+              print(e)
+              return {"ItemStatus": "UNKNOWN"}
+      Policies:
+        - DynamoDBCrudPolicy: 
+            TableName: !Ref RoutingTable
+      Environment:
+        Variables:
+          RoutingTable: !Ref RoutingTable
+          TablePrimaryKey: RoutingFeature
+
+  RoutingTable:
+    Type: 'AWS::Serverless::SimpleTable'
+    Properties:
+        PrimaryKey:
+          Name: RoutingFeature
+          Type: String
+
+Outputs:
+  RoutingLambdaFunction:
+    Description: "Routing Lambda Function ARN"
+    Value: !GetAtt ContactRoutingLambda.Arn

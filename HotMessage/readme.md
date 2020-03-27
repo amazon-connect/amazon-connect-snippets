@@ -10,7 +10,7 @@ This project demonstrates how hot messages or time dependent events can be dynam
 5. Navigate to Contact Flows under Routing.
 6. Create a new contact flow.
 7. Import the CallerHistory file in this repo.
-8. Under the Inovoke AWS Lambda function, select the AWS Lambda function created by the template.
+8. Under the Invoke AWS Lambda function, select the AWS Lambda function created by the template.
 9. Publish and test.
 
 By default, no hot messages will populate.

@@ -7,8 +7,7 @@ Parameters:
   SAMAlias:
     Type: String
     Default: "PROD"
-    
- 
+     
 Globals:
   Function:
     Timeout: 3
@@ -28,7 +27,7 @@ Resources:
         "use strict";
 
         exports.handler = (event, context, callback) => {
-            callback(null,{"Success":"True"});
+            callback(null,{"version": context.functionVersion });
         };
         
   AliasErrorMetricGreaterThanZeroAlarm:
@@ -57,6 +56,6 @@ Resources:
       SourceArn: !Ref ConnectInstanceArn
       
 Outputs:
-  ConnectLambdaFunction:
-    Description: "Connect Lambda Function ARN"
-    Value: !GetAtt ConnectLambdaFunction.Arn
+  ConnectLambdaFunctionAlias:
+    Description: "Connect Lambda Function Alias"
+    Value: !Ref ConnectLambdaFunction.Alias

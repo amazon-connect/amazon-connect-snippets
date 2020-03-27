@@ -14,6 +14,7 @@ This project expands on the CallerHistory project by implementing additional fun
 5. Log into your Amazon Connect instance.
 6. Navigate to Contact Flows under Routing.
 7. Create a new contact flow.
-8. Import the CallerHistory file in this repo.
-9. Under the Invoke AWS Lambda function, select the AWS Lambda function created by the template.
+8. Import the SurveyDialTone file in this repo.
+9. Under the Invoke AWS Lambda function, select the UpdateUserDataLambda AWS Lambda function created by the template.
+   1.  This sample uses ContactId as a unique identifier.  
 10. Publish and test.
