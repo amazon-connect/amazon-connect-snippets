@@ -22,4 +22,13 @@ This project expands on the GetSetDataById project by implementing additional fu
 17. Set your working queue.
 18. Set the Agent whisper flow to the RecordLastAgent flow.
 19. Under the Invoke AWS Lambda function, select the GetUserDataLambda AWS Lambda function created by the template.
-20. Publish and test.
+20. Publish the contact flow.
+15. Create a new Outbound whisper contact flow.
+16. Import the RecordOutboundAgent file in this repo.
+19. Under the Invoke AWS Lambda function, select the GetUserDataLambda AWS Lambda function created by the template.
+20. Publish.
+21. Under queues, assign the RecordOutboundAgent contact flow as the Outbound whisper flow for a queue.  This will record any agent interactions for outbound calls.
+22. Save the queue.
+23. Test the configuration where a caller calls in, disconnects, and calls again.  Test an outbound dial from an agent to a person, disconnect or leave a message, and call again.
+
+NOTE: There is no timeout logic built in to this snipper.  Meaning if a caller is entered into the table, it will record their last agent interaction.
