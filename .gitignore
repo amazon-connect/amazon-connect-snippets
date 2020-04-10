@@ -1,0 +1,19 @@
+### OSX ###
+*.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two 
+Icon
+# Thumbnails
+._*
+
+
+# gitignore template for AWS Serverless Application Model project
+# website: https://docs.aws.amazon.com/serverless-application-model
+# Ignore build folder
+**/.aws-sam/
+
+# IDE stuff
+**/.vscode
+*.code-workspace
