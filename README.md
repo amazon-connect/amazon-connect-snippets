@@ -15,7 +15,8 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 
 | Name | Description | Links |
 | ---- | ----------- | ----- |
-| OutboundDial | Uses the [StartOutboundVoiceContact](https://docs.aws.amazon.com/connect/latest/APIReference/API_StartOutboundVoiceContact.html) API to call a number. | [Java](java/OutboundExample) [DotNet](dotnet/OutboundExample) |
+| Outbound Dial | Uses the [StartOutboundVoiceContact](https://docs.aws.amazon.com/connect/latest/APIReference/API_StartOutboundVoiceContact.html) API to call a number. | [Java](java/OutboundExample) [DotNet](dotnet/OutboundExample) |
+| Holiday Check | Can be used to check for holidays in a contact flow | [Python](python/holidaycheck) |
 
 ## Contributions
 
