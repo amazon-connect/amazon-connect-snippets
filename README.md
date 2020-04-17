@@ -18,6 +18,7 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Outbound Dial | Uses the [StartOutboundVoiceContact](https://docs.aws.amazon.com/connect/latest/APIReference/API_StartOutboundVoiceContact.html) API to call a number. | [Java](java/OutboundExample) [DotNet](dotnet/OutboundExample) |
 | Holiday Check | Can be used to check for holidays in a contact flow | [Python](python/holidaycheck) |
 | Sync Instance User Data | Can be used to sync basic user information from one instance to another instance | [Python](python/syncinstances) |
+| Lex Default Intent Function | pass the utterance used in Lex on default intent to a contact attribute in connect | [Python](python/LexDefaultIntentUtterance) |
 
 ## Contributions
 
