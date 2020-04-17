@@ -27,18 +27,18 @@ import (
 
 func main() {
 	region := flag.String("r", "", "The AWS region where your Amazon Connect instance is in")
-	queue := flag.String("q", "", "The ARN of the Amazon Connect queue")
+	queueARN := flag.String("q", "", "The ARN of the Amazon Connect queue")
 	flag.Parse()
 
-	// Create a new AWS session for the configured region
+	// Create a new AWS session
 	sess := session.Must(session.NewSession())
 
-	// Use session to create Amazon Connect client for the configured region.
+	// Use the session to create an Amazon Connect client for the configured region
 	svc := connect.New(sess, &aws.Config{Region: region})
 
-	// Create the input for the the GetCurrentMetricData API.
-	// This will request a COUNT for the number of Agents available in the queue.
-	instance := strings.Join(strings.Split(aws.StringValue(queue), "/")[:2], "/") // instance ARN from queue ARN
+	// Create the input for the the GetCurrentMetricData API
+	// This will request a count of the number of Agents available in the queue
+	instanceARN := strings.Join(strings.Split(aws.StringValue(queueARN), "/")[:2], "/") // instance ARN from queue ARN
 	input := &connect.GetCurrentMetricDataInput{
 		CurrentMetrics: []*connect.CurrentMetric{
 			{
@@ -48,10 +48,10 @@ func main() {
 		},
 		Filters: &connect.Filters{
 			Channels: []*string{aws.String(connect.ChannelVoice)},
-			Queues:   []*string{queue},
+			Queues:   []*string{queueARN},
 		},
 		Groupings:  []*string{aws.String(connect.GroupingQueue)},
-		InstanceId: aws.String(instance),
+		InstanceId: aws.String(instanceARN),
 	}
 	if err := input.Validate(); err != nil {
 		log.Fatalf("Error validating GetCurrentMetricDataInput: %v", err)
@@ -59,7 +59,7 @@ func main() {
 	}
 
 	// Create a pager. This will let us page over all of the metrics available
-	// when there are more metrics than can be returned in a single.
+	// when there are more metrics than can be returned in a single request
 	var count float64
 	pager := func(out *connect.GetCurrentMetricDataOutput, lastPage bool) bool {
 		for _, result := range out.MetricResults {
@@ -76,6 +76,7 @@ func main() {
 		log.Fatalf("Error calling GetCurrentMetricDataPagesWithContext: %v", err)
 		return
 	}
+
 	// Use a default context, the input, and the pager to call the GetCurrentMetricData API.
 	log.Printf("There are %d available agents in the queue.", int(count))
 }

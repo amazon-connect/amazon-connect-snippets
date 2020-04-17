@@ -8,6 +8,7 @@ We currently have sippets in:
 * Java under [java/](java/README.md)
 * DotNet (C#) under [dotnet/](dotnet/README.md)
 * Javascript under [javascript/](javascript/README.md)
+* Go under [go/](go/README.md)
 
 Feel free to add more languages. Please follow the requirements in each subdirectory README.
 
@@ -18,6 +19,7 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Outbound Dial | Uses the [StartOutboundVoiceContact](https://docs.aws.amazon.com/connect/latest/APIReference/API_StartOutboundVoiceContact.html) API to call a number. | [Java](java/OutboundExample) [DotNet](dotnet/OutboundExample) |
 | Holiday Check | Can be used to check for holidays in a contact flow | [Python](python/holidaycheck) |
 | Sync Instance User Data | Can be used to sync basic user information from one instance to another instance | [Python](python/syncinstances) |
+| Get Available Agents | Uses the [GetCurrentMetricData](https://docs.aws.amazon.com/connect/latest/APIReference/API_GetCurrentMetricData.html) API to get all available agents in a queue | [Go](go/GetQueueAvailableAgents) |
 
 ## Contributions
 
