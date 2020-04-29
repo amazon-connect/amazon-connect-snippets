@@ -2,7 +2,7 @@
 
 This repository is a collection of code snippets for working with different parts of Amazon Connect. The snippets are organized by language. There's an additional collection of projects that come with associated CloudFormation templates and Contact Flows in the `projects/` directory.
 
-We currently have sippets in:
+We currently have snippets in:
 
 * Python under [python/](python/README.md)
 * Java under [java/](java/README.md)
