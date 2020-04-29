@@ -17,11 +17,11 @@ import botocore
 # Mapping of roles (accounts) to connect instances
 
 ROLE_INSTANCES_MAP = {
-    "arn:aws:iam::ACCOUNT:role/metrics-role": [
-        "arn:aws:connect:us-west-2:<ACCOUNT>:instance/<ID>"
+    "arn:aws:iam::<ACCOUNT>:role/<METRICS-ROLE>": [
+        "arn:aws:connect:<REGION>:<ACCOUNT>:instance/<ID>"
     ],
-    "arn:aws:iam::ACCOUNT:role/metrics-role": [
-        "arn:aws:connect:us-west-2:<ACCOUNT>:instance/<ID>"
+    "arn:aws:iam::ACCOUNT:role/<METRICS-ROLE>": [
+        "arn:aws:connect:<REGION>:<ACCOUNT>:instance/<ID>"
     ],
 }
 
@@ -41,8 +41,13 @@ METRICS = [
     {"Name": "SLOTS_AVAILABLE", "Unit": "COUNT"},
 ]
 
+
+# could also be CHAT, only one channel at a time per:
+# https://docs.aws.amazon.com/connect/latest/APIReference/API_Filters.html#connect-Type-Filters-Channels
+CHANNEL = ["VOICE"]
+
 # this is just a helper function for assuming x-account roles
-def assumed_role_session(role_arn: str, base_session: botocore.session.Session = None):
+def assumed_role_session(role_arn: str, base_session: botocore.session.Session=None):
     base_session = base_session or boto3.session.Session()._session
     fetcher = botocore.credentials.AssumeRoleCredentialFetcher(
         client_creator=base_session.create_client,
@@ -78,7 +83,7 @@ def collect_metrics(connect, instance):
 
     resp = connect.get_current_metric_data(
         InstanceId=instance,
-        Filters={"Queues": queues, "Channels": ["VOICE"]},
+        Filters={"Queues": queues, "Channels": CHANNEL},
         Groupings=["Queue"],
         CurrentMetrics=METRICS,
     )
