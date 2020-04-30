@@ -4,11 +4,11 @@ This repository is a collection of code snippets for working with different part
 
 We currently have snippets in:
 
-* Python under [python/](python/README.md)
-* Java under [java/](java/README.md)
-* DotNet (C#) under [dotnet/](dotnet/README.md)
-* Javascript under [javascript/](javascript/README.md)
-* Go under [go/](go/README.md)
+* Python under [python/](python/)
+* Java under [java/](java/)
+* DotNet (C#) under [dotnet/](dotnet/)
+* Javascript under [javascript/](javascript/)
+* Go under [go/](go/)
 * PowerShell [powershell/](powershell/)
 
 Feel free to add more languages. Please follow the requirements in each subdirectory README.
