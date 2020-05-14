@@ -1,3 +1,5 @@
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/amazon-connect/amazon-connect-snippets) 
+
 # Amazon Connect Snippets
 
 This repository is a collection of code snippets for working with different parts of Amazon Connect. The snippets are organized by language. There's an additional collection of projects that come with associated CloudFormation templates and Contact Flows in the `projects/` directory.
