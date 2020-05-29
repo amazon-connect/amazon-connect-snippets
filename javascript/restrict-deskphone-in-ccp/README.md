@@ -49,6 +49,7 @@ function handleAgentRefresh(agent) {
 };
 
 ```
+for the complete code, please refer to code.js file in this repo.
 
 ## Conclusion
 The deskphone setting can be restricted by adding simple javasccript code into a custom CCP instance. This also avoids any server side setup such as API gateways, or Lambda functions. However, if your use case requires a more secure server side restriction of this setting, there is a solution available via Amazon Connect API.
