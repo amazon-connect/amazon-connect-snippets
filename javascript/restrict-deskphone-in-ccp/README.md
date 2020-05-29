@@ -30,6 +30,9 @@ As soon as the agent tries to save an external deskphone number, an `agent.onRef
 ![Agent Notification on Browser Screen](AgentNotification.png)
 
 
+## The Code
+Inject the following code into your custom webpage that embeds CCP.
+
 ```javascript
 
 function handleAgentRefresh(agent) {
