@@ -69,3 +69,4 @@ Resources:
         -
           AttributeName: ConfigId
           KeyType: "RANGE"
+          
