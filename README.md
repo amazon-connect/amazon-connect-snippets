@@ -25,7 +25,7 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Add Connect User | Add a new user to Amazon Connect | [PowerShell](powershell/New-ConnectUser) |
 | Multi Account / Multi Instance Metric Collection | Collect metrics from multiple accounts | [Python](python/multiaccountmetrics/multi_account_metrics.py) |
 | Restrict Deskphone in CCP | Enforce deskphone settings with javascript in the CCP | [Javascript](javascript/restrict-deskphone-in-ccp) |
-
+| Remote Control Center | Centrally manage prompts and routing configurations in DynamoDB | [Python](python/remote-control-center) |
 ## Contributions
 
 Make sure the `.gitignore` per language is applied.
