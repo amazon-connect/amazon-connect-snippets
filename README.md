@@ -24,6 +24,7 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Get Available Agents | Uses the [GetCurrentMetricData](https://docs.aws.amazon.com/connect/latest/APIReference/API_GetCurrentMetricData.html) API to get all available agents in a queue | [Go](go/GetQueueAvailableAgents) |
 | Add Connect User | Add a new user to Amazon Connect | [PowerShell](powershell/New-ConnectUser) |
 | Multi Account / Multi Instance Metric Collection | Collect metrics from multiple accounts | [Python](python/multiaccountmetrics/multi_account_metrics.py) |
+| Restrict Deskphone in CCP | Enforce deskphone settings with javascript in the CCP | [Javascript](javascript/restrict-deskphone-in-ccp) |
 
 ## Contributions
 
