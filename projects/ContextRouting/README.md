@@ -6,7 +6,7 @@ In this project, two examples are provided:
 1. Simple tracker that just returns to a given task in the IVR
 2. Complex tracker that maintains entered data and allows the customer to return to the exact point in a task, retaining all entered data relevant to the task.
 
-## Solution Components
+## Project Components
 - IAM Role: Allows Lambda read access to Kinesis Data Streams & read/write access Dynamo DB
 - Lambda Functions
   - Processes the Kinesis Data Stream to set active trackers
@@ -17,3 +17,10 @@ In this project, two examples are provided:
   - Sample change PIN flow used to demonstrate the simple tracker scenario
   - Sample make payment flow used to demonstrate the complex tracker scenario
   - Customer queue flow that clears all trackers when the call is queued
+  
+  ## Project Requirements
+  - Operational Amazon Connect instance
+  - CTR Streaming configured using Kinesis Data Streams (Not designed for use with Kinesis Data Firehose)
+  
+  ## Deployment Steps
+  Perform the following steps to deploy this project. 
