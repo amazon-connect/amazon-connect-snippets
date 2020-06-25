@@ -1,0 +1,144 @@
+
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Sample context tracking with Amazon Connect
+Parameters: 
+  TrackerDynamoTableName: 
+    Type: String
+    Default: ContextTrackingTable
+    Description: Provide a name for your context tracker DB
+  KinesisCTRStreamARN: 
+    Type: String
+    Default: REPLACEME
+    Description: Provide the ARN for the Kinesis stream that receives your contact trace records
+  TrackerRecordTimeToLive: 
+    Type: Number
+    Default: 300
+    Description: Amount of time, in milliseconds, before the tracker expires
+  AWSRegion: 
+    Type: String
+    Default: us-east-1
+    AllowedValues:
+      - us-east-1
+      - us-west-2
+      - ap-southeast-1
+      - ap-southeast-2
+      - ap-northeast-1
+      - eu-central-1
+      - eu-west-2
+    Description: The region code that you are deploying to. Must be a region that supports Amazon Connect
+Resources:
+  ContextSampleRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      Description: IAM Role that provides the access required for this sample
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AmazonKinesisReadOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ContextLambdaAddOn
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:GetRecords
+                Resource: '*'
+  ContextTrackerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - 
+          AttributeName: "caller_id"
+          AttributeType: "S"
+      KeySchema:
+        - 
+          AttributeName: "caller_id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+      TableName:
+        Ref: TrackerDynamoTableName
+      TimeToLiveSpecification: 
+        AttributeName: "item_ttl"
+        Enabled: true
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+  ContextCTRProcessorFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: ContextSampleRole
+    Properties: 
+      Code:
+        S3Bucket:
+          !Join
+            - ''
+            - - 'connect-lambda-repo-'
+              - !Ref AWSRegion
+        S3Key: context_tracker/ctrProcessor.py.zip
+      Description: Creates the tracker record
+      Environment: 
+        Variables:
+          tracker_table_name:
+            Ref: TrackerDynamoTableName
+      FunctionName: ContextRouterCTRProcessor
+      Handler: ctrProcessor.lambda_handler
+      Role: !GetAtt ContextSampleRole.Arn
+      Runtime: python3.8
+      Timeout: 8
+  ContextCheckFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: ContextSampleRole
+    Properties: 
+      Code:
+        S3Bucket:
+          !Join
+            - ''
+            - - 'connect-lambda-repo-'
+              - !Ref AWSRegion
+        S3Key: context_tracker/trackerCheck.py.zip
+      Description: Check for trackers
+      Environment: 
+        Variables:
+          tracker_table_name:
+            Ref: TrackerDynamoTableName
+          item_timeout:
+            Ref: TrackerRecordTimeToLive
+      FunctionName: ContextTrackerCheck
+      Handler: trackerCheck.lambda_handler
+      Role: !GetAtt ContextSampleRole.Arn
+      Runtime: python3.8
+      Timeout: 60
+  ContextCTRProcessorTrigger:
+    Type: AWS::Lambda::EventSourceMapping
+    DependsOn: 
+      - ContextCTRProcessorFunction
+    Properties: 
+      BatchSize: 100
+      Enabled: true
+      EventSourceArn:
+        Ref: KinesisCTRStreamARN
+      FunctionName: !GetAtt ContextCTRProcessorFunction.Arn
+      StartingPosition: LATEST
+Outputs:
+  ContextCTRProcessorLambdaFuntionARN:
+    Description: ARN for the CTR Processor function
+    Value: !GetAtt ContextCTRProcessorFunction.Arn
+  ContextCheckLambdaFuntionARN:
+    Description: ARN for the check function
+    Value: !GetAtt ContextCheckFunction.Arn
+
+      
