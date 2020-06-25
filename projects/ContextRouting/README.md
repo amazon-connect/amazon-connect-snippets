@@ -18,9 +18,42 @@ In this project, two examples are provided:
   - Sample make payment flow used to demonstrate the complex tracker scenario
   - Customer queue flow that clears all trackers when the call is queued
   
-  ## Project Requirements
-  - Operational Amazon Connect instance
-  - CTR Streaming configured using Kinesis Data Streams (Not designed for use with Kinesis Data Firehose)
+## Project Requirements
+- Operational Amazon Connect instance
+- CTR Streaming configured using Kinesis Data Streams (Not designed for use with Kinesis Data Firehose)
+
+## Deployment Steps
+Perform the following steps to deploy this project. 
+1. Deploy the cloudformation template context.yaml
+2. Add the ContextCheckFunction Lambda function to your Amazon Connect instance.
+3. Download the four contact flows in the ContactFlows directory.
+4. Import them in the following order, publishing each as you import them (do not make any changes at this time):
+  - (QUEUE FLOW) 001 - Context Tracking Queue
+  - (CONTACT FLOW) 001 - Context Tracking Main
+  - (CONTACT FLOW) 001 - Context Tracking Change PIN
+  - (CONTACT FLOW) 001 - Context Tracking Make Payment
+5. Open the 001 - Context Tracking Main contact flow and make the following changes:
+  - Find the first Transfer to flow block. Change the transfer destination from the attribute "CHANGE TO MAKE PAYMENT FLOW" to Select a flow and choose the "001 - Context Tracking Make Payment" flow
+  - Find the second Transfer to flow block. Change the transfer destination from the attribute "CHANGE TO CHANGE PIN FLOW" to Select a flow and choose the "001 - Context Tracking Change PIN" flow
+  - Save & Publish
+6. Set the 001 - Context Tracking Main as the contact flow for a phone number in your instance.
+7. Wait ~ 2 min for everything to update.
+
+## Demonstration
+To validate function, perform the following steps:
+### Test no context storage
+1. Call the phone number that you assigned
+2. Press 2 to change your PIN
+3. Enter a new PIN and Confirm. You should get a PIN changed message, then return to the main menu.
+4. Hang up. 
+5. Wait 2 minutes to be positive that the CTR has completely processed.
+6. Go to the DynamoDB dashboard and open your tracking table.
+7. There should be no tracker.
+
+### Test basic context storage
+1. Call the phone number that you assigned
+2. Press 2 to change your PIN
+3. Enter a new PIN, then hang up when the IVR asks you to confirm
+4. Wait 30 seconds and call back
+
   
-  ## Deployment Steps
-  Perform the following steps to deploy this project. 
