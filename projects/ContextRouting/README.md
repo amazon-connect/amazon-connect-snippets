@@ -1,6 +1,7 @@
 # Contextual Routing Example
 
 This project demonstrates how you can use contact trace record processing, Lambda, and DynamoDB to track a callers progress through an IVR task, such as making a payment, and return them to that task should they be disonnected. In this example, we use contact attributes to initialize a tracker, store relevant data, and leave the tracker active until the task is complete. If the task does not complete and the caller is disconnected, the emitted CTR will trigger a write to Dynamo DB which stores all of the existing data. When the customer calls back in, the data is retrieved and the customer is presented the option to return to the task in progress. 
+
 ## Examples
 In this project, two examples are provided:
 1. Simple tracker that just returns to a given task in the IVR
@@ -33,6 +34,7 @@ Perform the following steps to deploy this project.
   - (CONTACT FLOW) 001 - Context Tracking Change PIN
   - (CONTACT FLOW) 001 - Context Tracking Make Payment
 5. Open the 001 - Context Tracking Main contact flow and make the following changes:
+  - Find the Invoke AWS Lambda Function block and change it to point to the Lambda function that you enabled with your instance in step 2.
   - Find the first Transfer to flow block. Change the transfer destination from the attribute "CHANGE TO MAKE PAYMENT FLOW" to Select a flow and choose the "001 - Context Tracking Make Payment" flow
   - Find the second Transfer to flow block. Change the transfer destination from the attribute "CHANGE TO CHANGE PIN FLOW" to Select a flow and choose the "001 - Context Tracking Change PIN" flow
   - Save & Publish
@@ -50,10 +52,21 @@ To validate function, perform the following steps:
 6. Go to the DynamoDB dashboard and open your tracking table.
 7. There should be no tracker.
 
-### Test basic context storage
+### Test basic tracker
 1. Call the phone number that you assigned
-2. Press 2 to change your PIN
+2. At the main menu, press 2 to change your PIN
 3. Enter a new PIN, then hang up when the IVR asks you to confirm
-4. Wait 30 seconds and call back
+4. Wait 2 minutes and call back.
+5. When you call back in, it should ask if you want to return to the PIN change tast.
+6. Press 1 to return to the PIN change task and complete the task, which will ultimately reset your tracker.
 
+### Test complex tracker
+1. Call the phone number that you assigned
+2. At the main menu, select 1 to make a payment
+3. Press 1 to pay by card and enter a 16 digit number
+4. Enter the 4-digit expiration date
+5. Hang up the call when asked for the amount
+6. Wait 2 minutes and call back.
+7. When you call back in, it should ask if you want to return to the payment menu and return you to the place that you left off.
+8. Complete the payment to reset the tracker
   
