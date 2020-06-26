@@ -13,7 +13,7 @@ Parameters:
   TrackerRecordTimeToLive: 
     Type: Number
     Default: 300
-    Description: Amount of time, in milliseconds, before the tracker expires
+    Description: Amount of time, in seconds, before the tracker expires. Default is 5 minutes (300 seconds)
   AWSRegion: 
     Type: String
     Default: us-east-1
@@ -92,8 +92,10 @@ Resources:
       Description: Creates the tracker record
       Environment: 
         Variables:
-          tracker_table_name:
+          tracker_table:
             Ref: TrackerDynamoTableName
+          tracker_ttl:
+            Ref: TrackerRecordTimeToLive
       FunctionName: ContextRouterCTRProcessor
       Handler: ctrProcessor.lambda_handler
       Role: !GetAtt ContextSampleRole.Arn
@@ -113,10 +115,8 @@ Resources:
       Description: Check for trackers
       Environment: 
         Variables:
-          tracker_table_name:
+          tracker_table:
             Ref: TrackerDynamoTableName
-          item_timeout:
-            Ref: TrackerRecordTimeToLive
       FunctionName: ContextTrackerCheck
       Handler: trackerCheck.lambda_handler
       Role: !GetAtt ContextSampleRole.Arn
