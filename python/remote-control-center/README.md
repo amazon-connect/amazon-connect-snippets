@@ -35,8 +35,8 @@ This solution leverages the AWS Serverless Application Model to deploy the backe
    1. ConfigTable - The Amazon DynamoDB table used to store configurations
    2. HydrateConfigTableLambda - An AWS Lambda function used to populate values into the config table
    3. RetrieveConfigLambda - An AWS Lambda function to be invoked from within a contact flow
-   4. HydrateConfigTableLambdaRole - An AWS IAM Role for HydrateConfigTableLambda
-   5. RetrieveConfigLambdaRole - An AWS IAM Role for RetrieveConfigLambda
+   4. HydrateConfigTableLambdaRole - An AWS IAM Role for HydrateConfigTableLambda that allows the function to read and write to the the ConfigTable as well as translate text through Amazon Translate
+   5. RetrieveConfigLambdaRole - An AWS IAM Role for RetrieveConfigLambda that allows the function to read and write to the the ConfigTable as well as translate text through Amazon Translate
 
 ### Configure example configurations
 1. Navigate to the HydrateConfigTableLambda function
@@ -65,7 +65,7 @@ This solution leverages the AWS Serverless Application Model to deploy the backe
 7. For the two Invoke AWS Lambda function blocks, update the target lambda function to the RetrieveConfigLambda function
 8. Save, publish, and route a phone number to the contact flow
 9. Test the contact flow for each of the available languages.  After testing option 4 (Italian) notice how the prompts were automatically translated into Italian and then stored in the DynamoDB table
-10. Set the HOT_MESSAGE_FLAG configuration to 1 and test.  Then set it to 2
+10. Navigate to the Amazon DynamoDB service and select the ConfigTable.  Edit the item for the HOT_MESSAGE_FLAG configuration and set it to 1, save the item, and test.  Then try setting it to 2.  Notice how the behavior of the contact flow changed without having to make any modifications to the contact flow itself.  When the flag is equal to 1, the HOT_MESSAGE configuration is played out before entering the main menu.  When the flag is set to 2, the EMERGENCY_MESSAGE configuration is played out, and the caller is disconnected.
 11. Test modifying some of the language specific prompts within the DynamoDB console. Note, to change the English prompt, you must modify the "en" attribute and not the DefaultResponse
 
 ## Behaviors and upkeep
@@ -73,11 +73,11 @@ This solution leverages the AWS Serverless Application Model to deploy the backe
 ### Maintaining Messages
 Messages can be changed at any time.  To overwrite and translate messages, the HydrateConfigTableLambda function includes a sample event to overwrite messages.  Note, using the function will replace the entire item, including any additional translations.  However it is the fastest way to bulk upload prompts and configure the base languages used for translation.
 
-Prompts can also be modified directly in the table.  The changes made directly in the table will take effect immediately. Note, to change the English prompt, you must modify the "en" attribute and not the DefaultResponse
+Prompts can also be modified directly in the table.  The changes made directly in the table will take effect immediately. Note, to change the English prompt, you must modify the "en" attribute and not the DefaultResponse.  
 
 If a language is requested that is not in the table, the GetConfigLambda will use the DefaultResponse attribute to attempt to translate into the target language.  If the translation fails, the DefaultResponse is returned in lieu of a translation.
 
-You can also use SSML in the field as long as the contact flow block is set up to interpret the response as SSML.
+You can also use SSML in the field as long as the contact flow block is set up to interpret the response as SSML.  However, keep in mind automatic translation may change the SSML tags and cause unintented behavior.
 
 ### Maintaining Language Routing features
 Like Messages, Language Routing features can be updated using the bulk tool or directly in the console.  
