@@ -23,7 +23,7 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 
 | Name | Description | Links |
 | ---- | ----------- | ----- |
-| Context Routing | Uses CTR processing, Lambda, and DynamoDB to track IVR task completion and return callers to incomplete tasks | [CloudFormation](projects/OutboundExample) [DotNet](projects/ContextRouting) |
+| Context Routing | Uses CTR processing, Lambda, and DynamoDB to track IVR task completion and return callers to incomplete tasks | [CloudFormation](projects/ContextRouting) |
 
 ## Contributions
 
