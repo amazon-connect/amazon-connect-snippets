@@ -26,6 +26,13 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Multi Account / Multi Instance Metric Collection | Collect metrics from multiple accounts | [Python](python/multiaccountmetrics/multi_account_metrics.py) |
 | Restrict Deskphone in CCP | Enforce deskphone settings with javascript in the CCP | [Javascript](javascript/restrict-deskphone-in-ccp) |
 | Remote Control Center | Centrally manage prompts and routing configurations in DynamoDB | [Python](python/remote-control-center) |
+
+## Projects
+
+| Name | Description | Links |
+| ---- | ----------- | ----- |
+| Context Routing | Uses CTR processing, Lambda, and DynamoDB to track IVR task completion and return callers to incomplete tasks | [CloudFormation](projects/ContextRouting) |
+
 ## Contributions
 
 Make sure the `.gitignore` per language is applied.
