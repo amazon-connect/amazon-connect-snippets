@@ -1,0 +1,71 @@
+{
+    "Configs": [
+      {
+        "DefaultResponse": "Hello.  Thank you for calling the Remote Control Center hotline. For English press 1.  For Spanish, press 2. For French, press 3.  To experience translation on the fly in Italian, press 4.",
+        "ConfigType": "STATIC_ROUTING",
+        "CollectionId": "INITIAL",
+        "ConfigId": "INITIAL_GREETING"
+      },
+      {
+        "DefaultResponse": "I've set your working language",
+        "ConfigType": "MESSAGE",
+        "CollectionId": "ENTRY_FLOW",
+        "ConfigId": "GREETING"
+      },
+      {
+        "DefaultResponse": "Press 1 to speak to an agent.  Press 2 to hear our latest news.",
+        "ConfigType": "MESSAGE",
+        "CollectionId": "ENTRY_FLOW",
+        "ConfigId": "MENU_OPTIONS"
+      },
+      {
+        "DefaultResponse": "This is where we could use language  routing features to route users to language specific queues or contact flows.",
+        "ConfigType": "MESSAGE",
+        "CollectionId": "ENTRY_FLOW",
+        "ConfigId": "ROUTE_TO_AGENT_MESSAGE"
+      },
+      {
+        "DefaultResponse": "We are excited to launch the Remote Control Center solution.  Thank you for testing it out.",
+        "ConfigType": "MESSAGE",
+        "CollectionId": "ENTRY_FLOW",
+        "ConfigId": "LATEST_NEWS"
+      },
+      {
+        "DefaultResponse": "We're experiencing higher than normal hold times.",
+        "ConfigType": "MESSAGE",
+        "CollectionId": "ENTRY_FLOW",
+        "ConfigId": "HOT_MESSAGE"
+      },
+      {
+        "DefaultResponse": "We are currently closed due to company holiday.",
+        "ConfigType": "MESSAGE",
+        "CollectionId": "ENTRY_FLOW",
+        "ConfigId": "EMERGENCY_MESSAGE"
+      },
+      {
+        "DefaultResponse": "0",
+        "ConfigType": "STATIC_ROUTING",
+        "CollectionId": "ENTRY_FLOW",
+        "ConfigId": "HOT_MESSAGE_FLAG"
+      },
+      {
+        "DefaultResponse": "<CONTACT_FLOW_ID>",
+        "ConfigType": "LANGUAGE_ROUTING",
+        "CollectionId": "EXAMPLE_LANGUAGE_ROUTING",
+        "ConfigId": "NEXT_CONTACT_FLOW"
+      },
+      {
+        "DefaultResponse": "<QUEUE_ID>",
+        "ConfigType": "LANGUAGE_ROUTING",
+        "CollectionId": "EXAMPLE_LANGUAGE_ROUTING",
+        "ConfigId": "WORKING_QUEUE"
+      },
+      {
+        "DefaultResponse": "<CALLBACK_QUEUE_ID>",
+        "ConfigType": "LANGUAGE_ROUTING",
+        "CollectionId": "EXAMPLE_LANGUAGE_ROUTING",
+        "ConfigId": "WORKING_CALLBACK_QUEUE"
+      }
+    ]
+}
+  
