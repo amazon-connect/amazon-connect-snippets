@@ -31,6 +31,8 @@ In this project, two examples are provided:
 ## Deployment Steps
 Perform the following steps to deploy this project. 
 1. Deploy the cloudformation template context.yaml
+  - Make sure that you select the correct region to match your Amazon Connect instance
+  - Make sure that you use the ARN for the Contact Trace Record stream associated with your Amazon Connect instance
 2. Add the ContextTrackerCheck Lambda function to your Amazon Connect instance.
 3. Download the four contact flows in the ContactFlows directory.
 4. Import them in the following order, publishing each as you import them (do not make any changes at this time):
