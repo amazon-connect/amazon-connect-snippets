@@ -19,6 +19,12 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Holiday Check | Can be used to check for holidays in a contact flow | [Python](python/holidaycheck) |
 | Sync Instances | Can be used to sync basic user information from one instance to another instance | [Python](python/syncinstances) |
 
+## Projects
+
+| Name | Description | Links |
+| ---- | ----------- | ----- |
+| Context Routing | Uses CTR processing, Lambda, and DynamoDB to track IVR task completion and return callers to incomplete tasks | [CloudFormation](projects/OutboundExample) [DotNet](projects/ContextRouting) |
+
 ## Contributions
 
 Make sure the `.gitignore` per language is applied.
