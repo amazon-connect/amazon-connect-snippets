@@ -4,7 +4,7 @@ Description: An AWS Serverless Specification template describing your function.
 Globals:
   Function:
     Timeout: 30
-    Runtime: python3.7
+    Runtime: python3.8
     Handler: lambda_function.lambda_handler
 
 Resources:
