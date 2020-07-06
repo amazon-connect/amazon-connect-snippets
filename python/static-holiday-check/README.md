@@ -2,7 +2,7 @@
 
 A very common ask from contact centres is to be able to perform holiday check from within their contact flows and direct the call flow accordingly.
 
-This sample code that shows how to add a basic, simple, very static method of adding the functionality to the Amazon Connect contact flows.
+This sample code that shows how to add a basic, simple, very static method of adding the functionality to the Amazon Connect contact flows. It also allows you to store holiday names that can be spoken to the caller using Text to speech.
 
 ----
 
