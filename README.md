@@ -2,12 +2,14 @@
 
 This repository is a collection of code snippets for working with different parts of Amazon Connect. The snippets are organized by language. There's an additional collection of projects that come with associated CloudFormation templates and Contact Flows in the `projects/` directory.
 
-We currently have sippets in:
+We currently have snippets in:
 
-* Python under [python/](python/README.md)
-* Java under [java/](java/README.md)
-* DotNet (C#) under [dotnet/](dotnet/README.md)
-* Javascript under [javascript/](javascript/README.md)
+* Python under [python/](python/)
+* Java under [java/](java/)
+* DotNet (C#) under [dotnet/](dotnet/)
+* Javascript under [javascript/](javascript/)
+* Go under [go/](go/)
+* PowerShell [powershell/](powershell/)
 
 Feel free to add more languages. Please follow the requirements in each subdirectory README.
 
@@ -15,9 +17,27 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 
 | Name | Description | Links |
 | ---- | ----------- | ----- |
-| Outbound Dial | Uses the [StartOutboundVoiceContact](https://docs.aws.amazon.com/connect/latest/APIReference/API_StartOutboundVoiceContact.html) API to call a number. | [Java](java/OutboundExample) [DotNet](dotnet/OutboundExample) |
+| Outbound Dial | Uses the [StartOutboundVoiceContact](https://docs.aws.amazon.com/connect/latest/APIReference/API_StartOutboundVoiceContact.html) API to call a number. | [Java](java/OutboundExample) [DotNet](dotnet/OutboundExample) [Go](go/StartOutboundVoiceContact) |
 | Holiday Check | Can be used to check for holidays in a contact flow | [Python](python/holidaycheck) |
-| Sync Instances | Can be used to sync basic user information from one instance to another instance | [Python](python/syncinstances) |
+| Sync Instance User Data | Can be used to sync basic user information from one instance to another instance | [Python](python/syncinstances) |
+| Lex Default Intent Function | pass the utterance used in Lex on default intent to a contact attribute in connect | [Python](python/LexDefaultIntentUtterance) |
+| Get Available Agents | Uses the [GetCurrentMetricData](https://docs.aws.amazon.com/connect/latest/APIReference/API_GetCurrentMetricData.html) API to get all available agents in a queue | [Go](go/GetQueueAvailableAgents) |
+| Add Connect User | Add a new user to Amazon Connect | [PowerShell](powershell/New-ConnectUser) |
+| Multi Account / Multi Instance Metric Collection | Collect metrics from multiple accounts | [Python](python/multiaccountmetrics/multi_account_metrics.py) |
+| Restrict Deskphone in CCP | Enforce deskphone settings with javascript in the CCP | [Javascript](javascript/restrict-deskphone-in-ccp) |
+| Remote Control Center | Centrally manage prompts and routing configurations in DynamoDB | [Python](python/remote-control-center) |
+
+## Projects
+
+| Name | Description | Links |
+| ---- | ----------- | ----- |
+| Context Routing | Uses CTR processing, Lambda, and DynamoDB to track IVR task completion and return callers to incomplete tasks | [CloudFormation](projects/ContextRouting) |
+
+## Projects
+
+| Name | Description | Links |
+| ---- | ----------- | ----- |
+| Context Routing | Uses CTR processing, Lambda, and DynamoDB to track IVR task completion and return callers to incomplete tasks | [CloudFormation](projects/ContextRouting) |
 
 ## Contributions
 

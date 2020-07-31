@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: An AWS Serverless Specification template describing your function.
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.8
+    Handler: lambda_function.lambda_handler
+
+Resources:
+  RetrieveConfigLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:  
+      CodeUri: GetConfigLambda/      
+      Policies:
+        - DynamoDBCrudPolicy: 
+            TableName: !Ref ConfigTable
+        - Statement:
+          - Sid: TranslatePolicy
+            Effect: Allow
+            Action:
+              - 'translate:TranslateText'
+            Resource: '*'
+      Environment:
+        Variables:
+          ConfigTable: !Ref ConfigTable
+          TablePrimaryKey: CollectionId  
+          TableSortKey:  ConfigId
+          DefaultConfig: NA
+
+  HydrateConfigTableLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:  
+      Timeout: 900
+      CodeUri: HydrateConfigTableLambda/      
+      Policies:
+        - DynamoDBCrudPolicy: 
+            TableName: !Ref ConfigTable
+        - Statement:
+          - Sid: TranslatePolicy
+            Effect: Allow
+            Action:
+              - 'translate:TranslateText'
+            Resource: '*'
+      Environment:
+        Variables:
+          ConfigTable: !Ref ConfigTable
+          TablePrimaryKey: CollectionId  
+          TableSortKey:  ConfigId
+          DefaultConfig: NA
+
+
+  ConfigTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      BillingMode: PAY_PER_REQUEST 
+      AttributeDefinitions: 
+        - 
+          AttributeName: CollectionId
+          AttributeType: "S"
+        - 
+          AttributeName: ConfigId
+          AttributeType: "S"
+
+      KeySchema:
+        -
+          AttributeName: CollectionId
+          KeyType: "HASH"
+        -
+          AttributeName: ConfigId
+          KeyType: "RANGE"
+          
