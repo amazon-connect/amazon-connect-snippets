@@ -33,11 +33,6 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | ---- | ----------- | ----- |
 | Context Routing | Uses CTR processing, Lambda, and DynamoDB to track IVR task completion and return callers to incomplete tasks | [CloudFormation](projects/ContextRouting) |
 
-## Projects
-
-| Name | Description | Links |
-| ---- | ----------- | ----- |
-| Context Routing | Uses CTR processing, Lambda, and DynamoDB to track IVR task completion and return callers to incomplete tasks | [CloudFormation](projects/ContextRouting) |
 
 ## Contributions
 
