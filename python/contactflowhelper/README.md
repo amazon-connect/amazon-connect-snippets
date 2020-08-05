@@ -10,6 +10,8 @@ A single AWS Lambda function which provides a set of basic math and text tools t
 * lower_text = returns the lowercase version of a string
 * upper_text = returns the uppercase version of a string
 
+__NOTE:__ No special IAM roles are required for this function.
+
 ## Usage
 When invoked, the function looks at the `function` parameter to determine wheich funciton to exectute. Based on the `function` parameter provided, there are additional required fields.
 
