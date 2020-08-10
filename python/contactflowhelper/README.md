@@ -222,7 +222,7 @@ The lower_text operation requires the following parameters:
 ## Example
 ````
 "Parameters": {
-    "function": "lower_text",
+    "operation": "lower_text",
     "text_string": "This tEXt HAS a MIX of CaSeS"
 }
 ````
@@ -244,7 +244,7 @@ The upper_text operation requires the following parameters:
 ## Example
 ````
 "Parameters": {
-    "function": "upper_text",
+    "operation": "upper_text",
     "text_string": "This tEXt HAS a MIX of CaSeS"
 }
 ````
