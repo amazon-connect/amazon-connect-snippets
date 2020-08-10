@@ -1,6 +1,7 @@
 # Contact Flow Helper
 A single AWS Lambda function which provides a set of basic math and text tools to help manipulate data in contact flows. Included operations are:
 * freeform_math = performs basic evaluation of a mathematical expression. For example: 2+2
+* random_number + returns a random number between a provided upper and lower limit
 * increment_1 = increments a provided number by 1
 * increment_n = increments a provided number by a provided amount
 * random_choice = returns a random selection from a provided list of options
@@ -84,7 +85,7 @@ Which will result in the following response from Lambda:
 ````
 
 ### increment_n
-The increment_n operation simply increments a provided base number by the provided increment value and returns the resulting string. For example, providing  abase of 24 and an increment of 6 will return a response of "30".
+The increment_n operation simply increments a provided base number by the provided increment value and returns the resulting string. For example, providing  a base of 24 and an increment of 6 will return a response of "30".
 #### Required Parameters
 The increment_n operation requires the following parameters:
 1. function = the operation to exectute, which should be set to `increment_n`
@@ -130,7 +131,7 @@ Which will result in from Lambda similar to:
 ````
 
 ### replace_text
-The replace_text repalces specifid text in an existing string with the supplied replacement.
+The replace_text replaces specified text in an existing string with the supplied replacement.
 #### Required Parameters
 The replace_text operation requires the following parameters:
 1. function = the operation to exectute, which should be set to `replace_text`
@@ -187,7 +188,7 @@ The strip_text operation requires the following parameters:
 1. function = the operation to exectute, which should be set to `strip_text`
 2. mode = the mode you want to use. Options are: trim,left,right
 3. text_string = the text you are working with
-4. text_to_strip = the characters that you want to strip
+4. strip_this = the characters that you want to strip
 
 ## Example
 ````
