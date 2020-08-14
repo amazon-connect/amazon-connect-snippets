@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Amazon Connect / Service Cloud Voice Cross Account SMS
+
+Parameters:
+  ConnectInstanceArn:
+    Description: Connect instance arn.
+    Type: String
+
+  LambdaLoggingLevel:
+    Default: 'INFO'
+    Description: 'Logging level for Lambda functions. Set one of the following DEBUG | INFO | WARNING | ERROR | CRITICAL'
+    Type: String
+    AllowedValues:
+      - DEBUG
+      - INFO
+      - WARNING
+      - ERROR
+      - CRITICAL
+
+Globals:
+  Function:
+    Timeout: 8
+    Runtime: python3.7
+    Handler: index.lambda_handler
+
+Resources:
+  SendSMSFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Role:
+        Fn::GetAtt: SendSMSFunctionRole.Arn
+      Environment:
+        Variables:
+          LAMBDA_LOGGING_LEVEL:
+            Ref: LambdaLoggingLevel
+      InlineCode: |
+        # Import the necessary modules
+        import logging
+        import os
+        import json
+        import boto3
+
+        # Establish a logger
+        logger = logging.getLogger()
+        logger.setLevel(logging.getLevelName(os.environ["LAMBDA_LOGGING_LEVEL"]))
+
+        # Establish the SNS client
+        client = boto3.client('sns')
+
+
+        # Core Function
+        def lambda_handler(event, context):
+            # REMEMBER to comment out the line below in production to reduce PII issues
+            logger.info("event: %s" % json.dumps(event))
+
+            try:
+                # Handle EventBridge pings that keep the function warm
+                if 'source' in event:
+                    response = {
+                        'statusCode': 200,
+                        'response': 'warm',
+                        'event': 'EventBridge ping'
+                    }
+                    return response
+
+                # Otherwise, continue
+                else:
+                    # Get parameters as a dictionary
+                    parameters = dict(event['Details']['Parameters'])
+
+                    # Check for phoneNumber and message parameters
+                    if 'phoneNumber' in parameters and 'message' in parameters:
+
+                        # Call the SNS client publish method with the phoneNumber and message
+                        result = client.publish(
+                            PhoneNumber=parameters['phoneNumber'],
+                            Message=parameters['message']
+                        )
+
+                        response = {
+                            "MessageId": result['MessageId'],
+                            "RequestId": result['ResponseMetadata']['RequestId']
+                        }
+                        return response
+                    else:
+                        # If the phoneNumber or message values are missing, return an error
+                        raise RuntimeError('Missing parameters!!!')
+
+            except Exception as e:
+                logger.error(e)
+                raise
+
+  SendSMSFunctionPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: SendSMSFunction
+    Properties:
+      FunctionName: !Ref SendSMSFunction
+      Action: lambda:InvokeFunction
+      Principal: connect.amazonaws.com
+      SourceAccount: !Select [4, !Split [":", !Ref ConnectInstanceArn]]
+      SourceArn: !Ref ConnectInstanceArn
+
+
+  SendSMSFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: SendSMSFunctionPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: "*"
+
+      Path: /
+
+Outputs:
+  SendSMSFunctionArn:
+    Description: The SendSMS function Arn for use in Amazon Connect contact flows
+    Value: !GetAtt SendSMSFunction.Arn

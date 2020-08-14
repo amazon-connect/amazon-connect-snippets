@@ -17,3 +17,4 @@ Icon
 # IDE stuff
 **/.vscode
 *.code-workspace
+**/.idea

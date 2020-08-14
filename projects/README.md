@@ -18,7 +18,7 @@ Each project contains an Amazon Cloudformation template or deployment guide as p
  - **RoutingFeatureRouting**:  This project shows how to capture a routing feature and use that to dynamically route a caller in a contact flow.  For example, based on the number dialed a caller can be routed to a specific queue or out to a specific external number.
  - **CrossRegionCrossAccount**:  This project shows how to call an AWS Lambda function that exists in a separate account or a separate region using AWS Lambda permissions.
  - **LambdaAlias**:  This project shows how to provide access to an AWS Lambda function Alias from Amazon Connect.
-
+ - **SCV-CrossAccountSMS**: THis project show how to use AWS Lambda and cross account permissions to allow Salesforce Service Cloud Voice provisioned Amazon Connect instances to utilize Amazon SNS to send SMS messages.
 
 
 # License
