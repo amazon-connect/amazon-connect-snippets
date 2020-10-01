@@ -1,0 +1,355 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  "Rate limiter snippet for Amazon Connect"
+
+Parameters:
+  contactFlowId:
+    Type: String
+    Default: 12345678-1234-1234-1234-123456789012
+    Description: The contact flow id that the customer will interact with for callbacks. This should be the id of the Contact Flow you uploaded.
+    AllowedPattern: '\w{8}-\w{4}-\w{4}-\w{4}-\w{12}'
+  instanceId:
+    Type: String
+    Default: 12345678-1234-1234-1234-123456789012
+    Description: The instance id of the Amazon Connect instance that the customer will interact for callbacks. You can find this in the Amazon Connect console when viewing your instance details.
+    AllowedPattern: '\w{8}-\w{4}-\w{4}-\w{4}-\w{12}'
+  agentPhoneNumber:
+    Type: String
+    Default: '+18881001234'
+    Description: The phone number assigned to the agent queue for callbacks (format- +18881001234).
+    AllowedPattern: '^[+]([1-9])(\d{10})'
+  rateLimit:
+    Type: String
+    Default: 10
+    Description: The rate limit for making a successful backend request for call queuing (1-999).
+    AllowedPattern: '([1-9]|[1-9][0-9]|[1-9][0-9][0-9])'
+
+Resources:
+  #### DynamoDb for ip address tracking ####
+  ipAddressTrackerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "value"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "value"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TimeToLiveSpecification:
+        AttributeName: "ttl"
+        Enabled: true
+
+  ### DynamoDb for phone number tracking ###
+  phoneNumberTrackerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "value"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "value"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TimeToLiveSpecification:
+        AttributeName: "ttl"
+        Enabled: true
+
+  #### Rate Limiter Lambda #####
+  RateLimiterLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description:  AWS Lambda Function for rate limiting user callback requests
+      Handler: "index.handler"
+      Role: !GetAtt RateLimiterLambdaExecutionRole.Arn
+      Runtime: "nodejs12.x"
+      MemorySize: 128
+      Timeout: 30
+      Environment:
+        Variables:
+          INSTANCE_ID: !Ref instanceId
+          CONTACT_FLOW_ID: !Ref contactFlowId
+          PHONE_NUMBER_TABLE: !Ref phoneNumberTrackerTable
+          IP_ADDRESS_TABLE: !Ref ipAddressTrackerTable
+          AGENT_PHONE_NUMBER: !Ref agentPhoneNumber
+          RATE_LIMIT: !Ref rateLimit
+      Code:
+          ZipFile: >
+              var AWS = require('aws-sdk');
+              var documentClient = new AWS.DynamoDB.DocumentClient();
+              var connect = new AWS.Connect();
+              /* MAIN FUNCTION */
+              exports.handler = async (event, context, callback) => {
+                  console.log("inbound event: " + JSON.stringify(event));
+
+                  /* PROCESS INCOMING EVENT */
+                  let inboundEventBody = JSON.parse(event.body);
+
+                  if(typeof inboundEventBody.phoneNumber !== undefined && inboundEventBody.phoneNumber !== '') {
+                      var ipAddress = event.requestContext.identity.sourceIp;
+                      var phoneNumber = inboundEventBody.phoneNumber;
+
+                      let phoneDDBTable = process.env.PHONE_NUMBER_TABLE;
+                      let ipDDBTable = process.env.IP_ADDRESS_TABLE;
+
+                      /* GET STATE DATA FOR CURRENT CALLBACK NUMBER AND IP ADDRESS */
+                      var ipData = await getDDBData(ipDDBTable, ipAddress);
+                      var phoneNumberData = await getDDBData(phoneDDBTable, phoneNumber);
+
+                      /* CHECK IF CURRENT PHONE NUMBER OR IP ADDRESS IS BLOCKED */
+                      let ipBlockResult = processRecord(ipDDBTable, ipAddress, ipData);
+                      let numberBlockResult = processRecord(phoneDDBTable, phoneNumber, phoneNumberData);
+                      var statusCode = 200;
+                      if ((ipBlockResult == true) || (numberBlockResult == true)) {
+                          var respValue = "Rate limit exceeded.";
+                      } else {
+                          //CALLBACK BLOCK
+                          //startOutboundCall(phoneNumber);
+                          var respValue = "Callback request succeeded, placing you in callback queue.";
+                      }
+                  } else {
+                      var respValue = "Please provide the callback phone number in your request.";
+                      var statusCode = 200;
+                  }
+                  let respBody = `{"resultMsg": "${respValue}"}`;
+                  let response = {
+                      "statusCode": statusCode,
+                      "headers": {
+                          "Access-Control-Allow-Origin": "*"
+                      },
+                      "body": respBody,
+                      "isBase64Encoded": false
+                  };
+                  callback(null, response);
+              };
+              
+              const getDDBData = async (table, value) => {
+                  let response = await getAlltheDdbData(table, value);
+                  console.log('ddbData: ' + JSON.stringify(response));
+                  return response;
+              };
+              
+              const getAlltheDdbData = (table, value) => {
+                  return new Promise(function (resolve, reject) {
+                      var params = {
+                          TableName: table,
+                          Key: {
+                              value: value
+                          }
+                      };
+                      var documentClient = new AWS.DynamoDB.DocumentClient();
+                      let response = documentClient.get(params, function (err, data) {
+                          if (err) console.log(err);
+                          else {
+                              let retVal = data.Item;
+                              resolve(retVal);
+                          }
+                      });
+                      return response;
+                  });
+              };
+              
+              const updateDB = (table, value, count, block) => {
+                  let response = documentClient.put({
+                      "TableName": table,
+                      "Item": {
+                          "value": value,
+                          "count": count,
+                          "block": block
+                      }
+                  }, (err, data) => {
+                      if (err) {
+                          console.log('error', 'putting item into dynamodb failed: ' + err);
+                      }
+                      else {
+                          console.log('DB Update success for: ' + value);
+                      }
+                  });
+                  return response;
+              };
+              
+              const processRecord = (table, value, data) => {
+                  let count;
+                  let block;
+                  if (typeof data !== "undefined") {
+                      count = data.count;
+                      block = data.block;
+                  }
+                  else if (typeof data === "undefined") {
+                      count = 1;
+                      block = false;
+                      updateDB(table, value, count, block);
+                      return block;
+                  }
+                  if (count < process.env.RATE_LIMIT) {
+                      count++;
+                      updateDB(table, value, count, block);
+                      return block;
+                  }
+                  else if (block == true) {
+                      count++;
+                      updateDB(table, value, count, block);
+                      return block;
+                  }
+                  else if (count >= process.env.RATE_LIMIT) {
+                      count++;
+                      let block = true;
+                      updateDB(table, value, count, block);
+                      return block;
+                  }
+              };
+
+
+  RateLimiterLambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: rate-limiter-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*"
+              - Effect: "Allow"
+                Action:
+                  - "connect:StartOutboundVoiceContact"
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:connect:${AWS::Region}:${AWS::AccountId}:instance/${instanceId}"
+                  - !Sub "arn:${AWS::Partition}:connect:${AWS::Region}:${AWS::AccountId}:instance/${instanceId}/*"
+              - Effect: "Allow"
+                Action:
+                  - 'dynamodb:Query'
+                  - 'dynamodb:GetItem'
+                  - 'dynamodb:UpdateItem'
+                  - 'dynamodb:PutItem'
+                Resource:
+                  - !GetAtt ipAddressTrackerTable.Arn
+                  - !GetAtt phoneNumberTrackerTable.Arn
+
+  ApiGatewayRestAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: "initiateRateLimiter"
+      Description: "API to initiate rate limiter with Amazon Connect"
+
+  LambdaApiGatewayInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt RateLimiterLambda.Arn
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestAPI}/*"
+
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - ApiGatewayRootMethod
+    Properties:
+      RestApiId: !Ref ApiGatewayRestAPI
+      StageName: "Prod"
+
+  ApiGatewayRootMethod:
+    Type: AWS::ApiGateway::Method
+    DependsOn: LambdaApiGatewayInvokePermission
+    Properties:
+      AuthorizationType: "NONE"
+      HttpMethod: "POST"
+      Integration:
+        IntegrationHttpMethod: "POST"
+        Type: "AWS_PROXY"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RateLimiterLambda.Arn}/invocations"
+        PassthroughBehavior: WHEN_NO_MATCH
+      ResourceId:  !GetAtt ApiGatewayRestAPI.RootResourceId
+      RestApiId: !Ref ApiGatewayRestAPI
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseModels:
+            application/json: Empty
+        - StatusCode: "500"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseModels:
+            application/json: Empty
+        - StatusCode: "400"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseModels:
+            application/json: Empty
+
+  ApiGatewayOptionsMethod: 
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ResourceId: !GetAtt ApiGatewayRestAPI.RootResourceId
+      RestApiId: !Ref ApiGatewayRestAPI
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: >-
+                'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'
+              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin:  '''*'''
+            ResponseTemplates:
+              application/json: ''
+            StatusCode: '200'
+        PassthroughBehavior: NEVER
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - ResponseModels:
+            application/json: Empty
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: '200'
+        - ResponseModels:
+            application/json: Empty
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: '400'
+
+Outputs:
+  RateLimiterLambda:
+    Description:  The ARN of the Lambda function created for rate limiting.
+    Value: !GetAtt RateLimiterLambda.Arn
+  ApiGatewayEndpoint:
+    Description:  The ARN of the API Gateway endpoint that triggers the Lambda function for rate limiting.
+    Value: !Ref ApiGatewayRestAPI
+  RateLimiterLambdaExecutionRole:
+    Description:  The ARN of the IAM role used by the Lambda function for rate limiting
+    Value: !GetAtt RateLimiterLambdaExecutionRole.Arn
+  IpAddressTrackerTable:
+    Description: Name of the new table to store the inbound ip address for rate limiting.
+    Value: !Ref ipAddressTrackerTable
+  PhoneNumberTrackerTable:
+    Description: Name of the new table to store the inbound phone number for rate limiting.
+    Value: !Ref phoneNumberTrackerTable
