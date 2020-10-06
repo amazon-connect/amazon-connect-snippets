@@ -34,6 +34,7 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | ---- | ----------- | ----- |
 | Context Routing | Uses CTR processing, Lambda, and DynamoDB to track IVR task completion and return callers to incomplete tasks | [CloudFormation](projects/ContextRouting) |
 | SCV-CrossAccountSMS | Uses Lambda and cross account permissions to allow Salesforce Service Cloud Voice provisioned Amazon Connect instances to utilize SNS to send SMS messages. | [CloudFormation](projects/SCV-CrossAccountSMS) |
+| Rate Limiter | The rate limiter project utilizes AWS Lambda and Amazon DynamoDB dynamically to add rate limiting a caller to a Amazon Connect queue based on their phone number and/or IP address. | [CloudFormation](projects/RateLimiter) |
 
 
 ## Contributions

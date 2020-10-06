@@ -19,6 +19,7 @@ Each project contains an Amazon Cloudformation template or deployment guide as p
  - **CrossRegionCrossAccount**:  This project shows how to call an AWS Lambda function that exists in a separate account or a separate region using AWS Lambda permissions.
  - **LambdaAlias**:  This project shows how to provide access to an AWS Lambda function Alias from Amazon Connect.
  - **SCV-CrossAccountSMS**: THis project show how to use AWS Lambda and cross account permissions to allow Salesforce Service Cloud Voice provisioned Amazon Connect instances to utilize Amazon SNS to send SMS messages.
+ - **Rate Limiter**: The rate limiter project utilizes AWS Lambda and Amazon DynamoDB dynamically to add rate limiting a caller to a Amazon Connect queue based on their phone number and/or IP address. 
 
 
 # License
