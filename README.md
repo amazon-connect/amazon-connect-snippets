@@ -34,6 +34,13 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | ---- | ----------- | ----- |
 | Context Routing | Uses CTR processing, Lambda, and DynamoDB to track IVR task completion and return callers to incomplete tasks | [CloudFormation](projects/ContextRouting) |
 | SCV-CrossAccountSMS | Uses Lambda and cross account permissions to allow Salesforce Service Cloud Voice provisioned Amazon Connect instances to utilize SNS to send SMS messages. | [CloudFormation](projects/SCV-CrossAccountSMS) |
+| CallerHistory | The caller history project utilizes AWS Lambda and Amazon DynamoDB to record if an individual has contacted previously though a user defined identifier and records time of last contact. | [CloudFormation](projects/CallerHistory) |
+| CrossRegionCrossAccount | This project shows how to call an AWS Lambda function that exists in a separate account or a separate region using AWS Lambda permissions. | [CloudFormation](projects/CrossRegionCrossAccount) |
+| GetSetDataByID | This project expands on the CallerHistory project by implementing additional functionality to get, put, and update items in Amazon DynamoDB. | [CloudFormation](projects/GetSetDataByID) |
+| LastAgentRouting | This project shows how to potentially implement last agent routing for customers using a voice channel.| [CloudFormation](projects/LastAgentRouting) |
+| RoutingFeatureRouting | This project shows how to capture a routing feature and use that to dynamically route a caller in a contact flow.| [CloudFormation](projects/RoutingFeatureRouting) |
+| LambdaAlias | This project shows how to provide access to an AWS Lambda function Alias from Amazon Connect.| [CloudFormation](projects/LambdaAlias) |
+| ContextRouting | This project demonstrates how you can use contact trace record processing, Lambda, and DynamoDB to track a callers progress through an IVR task, such as making a payment, and return them to that task should they be disonnected.| [CloudFormation](projects/ContextRouting) |
 | Rate Limiter | The rate limiter project utilizes AWS Lambda and Amazon DynamoDB dynamically to add rate limiting a caller to a Amazon Connect queue based on their phone number and/or IP address. | [CloudFormation](projects/RateLimiter) |
 
 

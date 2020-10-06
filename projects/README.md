@@ -18,8 +18,10 @@ Each project contains an Amazon Cloudformation template or deployment guide as p
  - **RoutingFeatureRouting**:  This project shows how to capture a routing feature and use that to dynamically route a caller in a contact flow.  For example, based on the number dialed a caller can be routed to a specific queue or out to a specific external number.
  - **CrossRegionCrossAccount**:  This project shows how to call an AWS Lambda function that exists in a separate account or a separate region using AWS Lambda permissions.
  - **LambdaAlias**:  This project shows how to provide access to an AWS Lambda function Alias from Amazon Connect.
- - **SCV-CrossAccountSMS**: THis project show how to use AWS Lambda and cross account permissions to allow Salesforce Service Cloud Voice provisioned Amazon Connect instances to utilize Amazon SNS to send SMS messages.
- - **Rate Limiter**: The rate limiter project utilizes AWS Lambda and Amazon DynamoDB dynamically to add rate limiting a caller to a Amazon Connect queue based on their phone number and/or IP address. 
+ - **SCV-CrossAccountSMS**: This project show how to use AWS Lambda and cross account permissions to allow Salesforce Service Cloud Voice provisioned Amazon Connect instances to utilize Amazon SNS to send SMS messages.
+ - **ContextRouting** - This project demonstrates how you can use contact trace record processing, Lambda, and DynamoDB to track a callers progress through an IVR task, such as making a payment, and return them to that task should they be disonnected.
+ - **Rate Limiter**: The rate limiter project utilizes AWS Lambda and Amazon DynamoDB dynamically to add rate 
+ limiting a caller to a Amazon Connect queue based on their phone number and/or IP address. 
 
 
 # License
