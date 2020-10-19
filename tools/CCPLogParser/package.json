@@ -13,7 +13,7 @@
     "react-dom": "^16.9.0",
     "react-dropzone": "^10.1.7",
     "react-json-view": "^1.19.1",
-    "react-scripts": "3.1.0",
+    "react-scripts": "^3.4.3",
     "react-scroll": "^1.7.13",
     "recharts": "^2.0.0-beta.6"
   },
@@ -37,7 +37,7 @@
     ]
   },
   "devDependencies": {
-    "eslint": "^7.11.0",
+    "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.2.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "^6.3.1",
