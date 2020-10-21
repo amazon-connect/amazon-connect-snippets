@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+  pre_build:
+    commands:
+      - if [ -e /tmp/node_modules.tar ]; then tar xf /tmp/node_modules.tar; fi
+      - npm install
+  build:
+    commands:
+      - npm run build
+  post_build:
+    commands:
+      - tar cf /tmp/node_modules.tar node_modules
+artifacts:
+  files:
+    - '**/*'
+  base-directory: build
+cache:
+  paths:
+    - /tmp/node_modules.tar
