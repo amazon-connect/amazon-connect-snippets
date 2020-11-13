@@ -1,6 +1,10 @@
 # CCP Log Parser
 
-**Available at: https://github.com/amazon-connect/amazon-connect-snippets**
+## How this tool works?
+
+Agents use the Amazon Connect Contact Control Panel (CCP) to interact with customer contacts. It's how they receive calls, chat with contacts, transfer them to other agents, put them on hold, and perform other key tasks.
+
+The CCP logs [here](https://docs.aws.amazon.com/connect/latest/adminguide/troubleshooting.html#tools-and-info) is the recommended way to troulbeshoot CCP related issues. This tool parses raw CCP logs into user-friendly readable format. You can easily find entries that you are interested in by filtering and it also tells you tips/hints regarding to errors recorded in the log.
 
 ## Basic Usage
 
