@@ -45,7 +45,7 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Rate Limiter | The rate limiter project utilizes AWS Lambda and Amazon DynamoDB dynamically to add rate limiting a caller to a Amazon Connect queue based on their phone number and/or IP address.| [CloudFormation](projects/RateLimiter) |
 | CCP Log Parser| A visualisation tool to visualise CCP logs to help troubleshoot client side errors | [link](tools/CCPLogParser) |
 | Connectivity Test Tool | This tool checks which web browser the agent is running, the network configuration from the client side and whether the microphone has required permissions. | [link](tools/CCPConnectivityTestTools) |
-| Dynamic Attribute Routing | This project demonstrates how you can use persistent session attributes to develop modular, repeatable and dynamic contact flows | [CloudFormation](projects/DynamicAttributeRouting)
+| Dynamic Contact Center | This project demonstrates how you can use persistent session attributes to develop modular, repeatable and dynamic contact flows | [CloudFormation](projects/DynamicContactCenter)
 
 ## Contributions
 

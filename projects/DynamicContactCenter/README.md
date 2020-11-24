@@ -1,4 +1,4 @@
-# Dynamic Attribute Routing
+# Dynamic Contact Center
 
 This project demonstrates how you can implement attribute based routing in combination with dynamic contact flow blocks to create a unique customer experience while using a small number of reusable and modular contact flows. Lambda is used to get attributes from various DynamoDB tables, temporarily storing them in memory as perpetual session attributes. This approach allows a large number of attributes to be referenced by various block types within numerous contact flows without the need to store any attributes in the CTR.
 
@@ -70,7 +70,7 @@ In addition to the operation hours you configured for the three queues, this con
 Follow the same steps listed above to test additional languages. Each number should playback the appropriate language-specific prompts and place the call in the correct queue.
 
 ## Conclusion
-Now that you have the foundation in place for attribute-based dynamic routing the possibilites are endless. Utilizing session attributes allows you to keep your CTR records clean and only write the attributes you want while keeping the others in memory to perform various tasks throughout the contact.
+Now that you have the foundation in place for attribute-based dynamic routing the possibilities are endless. Utilizing session attributes allows you to keep your CTR records clean and only write the attributes you want while keeping the others in memory to perform various tasks throughout the contact.
 
 
   

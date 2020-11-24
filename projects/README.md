@@ -21,7 +21,7 @@ Each project contains an Amazon Cloudformation template or deployment guide as p
  - **SCV-CrossAccountSMS**: This project show how to use AWS Lambda and cross account permissions to allow Salesforce Service Cloud Voice provisioned Amazon Connect instances to utilize Amazon SNS to send SMS messages.
  - **ContextRouting** - This project demonstrates how you can use contact trace record processing, Lambda, and DynamoDB to track a callers progress through an IVR task, such as making a payment, and return them to that task should they be disconnected.
  - **Rate Limiter**: The rate limiter project utilizes AWS Lambda and Amazon DynamoDB dynamically to add rate limiting a caller to a Amazon Connect queue based on their phone number and/or IP address. 
- - **DynamicAttributeRouting**: The dynamic attribute routing project demonstrates how you can use AWS Lambda and Amazon DynamoDB to populate session attributes based on the dialed number and dynamically route a caller.  
+ - **DynamicContactCenter**: The dynamic contact center project demonstrates how you can use AWS Lambda and Amazon DynamoDB to populate session attributes based on the dialed number and dynamically route a call to various queues, prompts, sub-contact flows, and more.  
 
 # License
 This library is licensed under the MIT-0 License. See the LICENSE file.
