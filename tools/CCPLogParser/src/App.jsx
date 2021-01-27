@@ -108,31 +108,6 @@ class App extends React.Component {
         };
     }
 
-    onLoadLog(log) {
-        this.setState({
-            isInitial: false,
-            // eslint-disable-next-line react/no-unused-state
-            originalLog: log.map((event, idx) => ({ ...event, _oriKey: idx })),
-            log: log
-                .map((event, idx) => (
-                    { ...event, _oriKey: idx, _ts: new Date(event.time).getTime() }
-                ))
-                .sort((a, b) => (a._ts === b._ts ? a._oriKey - b._oriKey : a._ts - b._ts))
-                .map((event, idx) => findExtras(event, idx)),
-            selectedLog: [],
-            selectedSnapshots: [],
-            indexedLogs: buildIndex(),
-        });
-    }
-
-    selectLog(selectedLog) {
-        this.setState({ selectedLog });
-    }
-
-    selectSnapshots(selectedSnapshots) {
-        this.setState({ selectedSnapshots });
-    }
-
     handleOnDrop(files) {
         const allowedTypes = [
             'text/plain',
@@ -165,6 +140,31 @@ class App extends React.Component {
 
     handleExpandLogView() {
         this.setState((prevState) => ({ isExpanded: !prevState.isExpanded }));
+    }
+
+    onLoadLog(log) {
+        this.setState({
+            isInitial: false,
+            // eslint-disable-next-line react/no-unused-state
+            originalLog: log.map((event, idx) => ({ ...event, _oriKey: idx })),
+            log: log
+                .map((event, idx) => (
+                    { ...event, _oriKey: idx, _ts: new Date(event.time).getTime() }
+                ))
+                .sort((a, b) => (a._ts === b._ts ? a._oriKey - b._oriKey : a._ts - b._ts))
+                .map((event, idx) => findExtras(event, idx)),
+            selectedLog: [],
+            selectedSnapshots: [],
+            indexedLogs: buildIndex(),
+        });
+    }
+
+    selectLog(selectedLog) {
+        this.setState({ selectedLog });
+    }
+
+    selectSnapshots(selectedSnapshots) {
+        this.setState({ selectedSnapshots });
     }
 
     render() {
