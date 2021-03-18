@@ -1,0 +1,123 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Check Time Left
+
+  Sample SAM Template for businessHours
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 10
+
+
+Parameters:
+  MyTable:
+    Type: String
+    Default: QueueHours
+  MyTimeZone:
+    Type: String
+    Default: 0
+  ContactInstance:
+    Type: String
+    Default: INSTANCEID
+
+Resources:
+  GetTimeLeftFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: getTimeLeft/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Environment:
+        Variables:
+          BusinessHoursTable: !Ref MyTable
+          TimeZone: !Ref MyTimeZone
+      Policies:
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                'Fn::Join':
+                  - ''
+                  - - 'arn:aws:dynamodb:'
+                    - Ref: AWS::Region
+                    - ':'
+                    - Ref: AWS::AccountId
+                    - ':table/'
+                    - Ref: DynamoDBTable
+
+  UpdateQueueHoursFunction:
+   Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+   Properties:
+    CodeUri: updateQueueHours/
+    Handler: app.lambda_handler
+    Runtime: python3.7
+    Environment:
+      Variables:
+        BusinessHoursTable: !Ref MyTable
+        instanceID: !Ref ContactInstance
+    Events:
+      UpdateQueueHoursDaily:
+        Type: Schedule
+        Properties:
+          Schedule: rate(1 day)
+    Policies:
+      - Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              'Fn::Join':
+                - ''
+                - - 'arn:aws:dynamodb:'
+                  - Ref: AWS::Region
+                  - ':'
+                  - Ref: AWS::AccountId
+                  - ':table/'
+                  - Ref: DynamoDBTable
+          - Effect: Allow
+            Action:
+              - connect:Get*
+              - connect:Describe*
+              - connect:List*
+              - ds:DescribeDirectories
+            Resource:
+              'Fn::Join':
+                - ''
+                - - 'arn:aws:connect:'
+                  - Ref: AWS::Region
+                  - ':'
+                  - Ref: AWS::AccountId
+                  - ':instance/'
+                  - Ref: ContactInstance
+
+  DynamoDBTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: !Ref MyTable
+      PrimaryKey:
+        Name: QueueID
+        Type: String
+
+
+Outputs:
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  GetTimeLeftFunction:
+    Description: "GetTimeLeft  Function ARN"
+    Value: "GetTimeLeftFunction"
+  UpdateQueueHoursFunction:
+    Description: "UpdateQueueHours  Function ARN"
+    Value: "UpdateQueueHoursFunction"
+  DynamoDBTable:
+    Description: "DynamoDB Table"
+    Value: !Ref DynamoDBTable
