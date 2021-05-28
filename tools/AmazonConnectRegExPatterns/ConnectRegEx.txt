@@ -1,0 +1,46 @@
+
+Amazon Connect Regex
+
+
+#Since AWS CloudFormation templates use the JSON syntax for specifying objects and data, you will need to add an additional backslash to any backslash characters in your regular expression, or JSON will interpret these as escape characters.
+For example, if you include a \d in your regular expression to match a digit character, you will need to write it as \\d in your JSON template.
+
+
+#instance ID
+    AllowedPattern: ^([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$
+
+#Contact Flow
+    AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\\/contact-flow\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+
+#Queue
+    AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\\/queue\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+
+#Prompt
+    AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\\/prompt\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+
+#Agent
+    AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\\/agent\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+
+#US e164
+    AllowedPattern: "^\\+1[0-9]{10}"
+
+
+#outside of CloudFormation
+
+#instance ID
+    AllowedPattern: ^([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$
+
+#Contact Flow
+    "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\/contact-flow\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+
+#Queue
+    "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\/queue\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+
+#Prompt
+    "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\/prompt\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+
+#Agent
+    AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\/agent\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+
+#US e164
+    "^\+1[0-9]{10}"
