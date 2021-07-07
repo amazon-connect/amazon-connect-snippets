@@ -27,7 +27,8 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Multi Account / Multi Instance Metric Collection | Collect metrics from multiple accounts | [Python](python/multiaccountmetrics/multi_account_metrics.py) |
 | Restrict Deskphone in CCP | Enforce deskphone settings with javascript in the CCP | [Javascript](javascript/restrict-deskphone-in-ccp) |
 | Remote Control Center | Centrally manage prompts and routing configurations in DynamoDB | [Python](python/remote-control-center) |
-| Contact Flow Helper | A single AWS Lambda function which provides a set of basic math and text tools to help manipulate data in contact flows | [Python](python/contactflowhelper)
+| Contact Flow Helper | A single AWS Lambda function which provides a set of basic math and text tools to help manipulate data in contact flows | [Python](python/contactflowhelper)|
+| Create Tasks Programmatically | CloudFormation template to enable you to programmatically create an Amazon Connect Task | [Javascript](javascript/programmatically-create-task-example)
 
 ## Projects
 
@@ -45,6 +46,7 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Rate Limiter | The rate limiter project utilizes AWS Lambda and Amazon DynamoDB dynamically to add rate limiting a caller to a Amazon Connect queue based on their phone number and/or IP address.| [CloudFormation](projects/RateLimiter) |
 | CCP Log Parser| A visualisation tool to visualise CCP logs to help troubleshoot client side errors | [link](tools/CCPLogParser) |
 | Connectivity Test Tool | This tool checks which web browser the agent is running, the network configuration from the client side and whether the microphone has required permissions. | [link](tools/CCPConnectivityTestTools) |
+| Dynamic Contact Center | This project demonstrates how you can use persistent session attributes to develop modular, repeatable and dynamic contact flows | [CloudFormation](projects/DynamicContactCenter)
 
 ## Contributions
 

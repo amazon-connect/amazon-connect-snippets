@@ -1,0 +1,652 @@
+# Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+AWSTemplateFormatVersion: "2010-09-09"
+Description:
+  This template builds the Lambda functions, IAM role, and populates the associated DynamoDB tables
+  to build the foundation for attribute based dynamic routing for a multi-lingual contact center.
+
+###################################################
+#
+# Template Parameters
+#
+###################################################
+Parameters:
+
+  OrganizationName:
+    Type: String
+    Description: Enter the name of your organization
+    Default: "Alpha to Zulu Enterprises"
+  DeploymentEnvironment:
+    Type: String
+    Description: Enter your deployment environment
+    AllowedValues:
+      - prod
+      - dev
+  ConnectInstanceARN:
+    Type: String
+    Description: Enter your Amazon Connect Instance ARN
+    AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+    Default: "arn:aws:connect:xx-east-1:000000000000:instance/00000000-0000-0000-0000-000000000000"
+    ConstraintDescription: "Entry must be a valid Amazon Connect Instance ID."
+  FirstLanguage:
+    Type: String
+    Description: First language supported
+    AllowedValues:
+      - English
+      - Spanish
+      - French
+    Default: "English"
+  FirstLanguageNumber:
+    Type: String
+    Description: The inbound number assigned to your first language queue
+    AllowedPattern: "^\\+1[0-9]{10}"
+    Default: "+14443330000"
+    ConstraintDescription: "Entry must be a valid e.164 number."
+  FirstLanguageQueue:
+    Type: String
+    Description: The ARN for your first language queue
+    AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\\/queue\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+    Default: "arn:aws:connect:xx-east-1:000000000000:instance/00000000-0000-0000-0000-000000000000/queue/00000000-0000-0000-0000-000000000000"
+    ConstraintDescription: "Entry must be a valid Queue ARN."
+  SecondLanguage:
+    Type: String
+    Description: Second language supported
+    AllowedValues:
+      - English
+      - Spanish
+      - French
+    Default: "Spanish"
+  SecondLanguageNumber:
+    Type: String
+    Description: The inbound number assigned to your second language queue
+    AllowedPattern: "^\\+1[0-9]{10}"
+    Default: "+14443331111"
+    ConstraintDescription: "Entry must be a valid e.164 number."
+  SecondLanguageQueue:
+    Type: String
+    Description: The ARN for your second language queue
+    AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\\/queue\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+    Default: "arn:aws:connect:xx-east-1:000000000000:instance/00000000-0000-0000-0000-000000000000/queue/00000000-0000-0000-0000-000000000000"
+    ConstraintDescription: "Entry must be a valid Queue ARN."
+  ThirdLanguage:
+    Type: String
+    Description: Third language supported
+    AllowedValues:
+      - English
+      - Spanish
+      - French
+    Default: "French"
+  ThirdLanguageNumber:
+    Type: String
+    Description: The inbound number assigned to your third language queue
+    AllowedPattern: "^\\+1[0-9]{10}"
+    Default: "+14443332222"
+    ConstraintDescription: "Entry must be a valid e.164 number."
+  ThirdLanguageQueue:
+    Type: String
+    Description: The ARN for your third language queue
+    AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\\/queue\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+    Default: "arn:aws:connect:xx-east-1:000000000000:instance/00000000-0000-0000-0000-000000000000/queue/00000000-0000-0000-0000-000000000000"
+    ConstraintDescription: "Entry must be a valid Queue ARN."
+
+###################################################
+#
+# Resources
+#
+###################################################
+
+Resources:
+  ###################################################
+  # Lambda Functions
+  ###################################################
+  GetLambdasFunction:
+    Type: AWS::Lambda::Function
+    DeletionPolicy: Delete
+    Properties:
+      Runtime: python3.7
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import os
+          import json
+          import logging
+
+          """ --- Set logging --- """
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          """ --- Set dynamoDB resources --- """
+
+          dynamodb = boto3.resource('dynamodb')
+
+          """ --- Control Functions --- """
+
+          def session_attributes_processor(event,response):
+
+              #Establish a new session parameters var
+              new_session_parameters = {}
+
+              #If any exist, write the passed parameters from Connect to the new var
+              if event['Details']['Parameters']:
+                  for k,v in event['Details']['Parameters'].items():
+                      new_session_parameters.update({k : v})
+
+              #If any exist, write the previous session attributes from Connect to the new Var
+              if 'sessionAttributes' in event['Details']['Parameters']:
+                  new_session_parameters.pop('sessionAttributes')
+                  passed_session_attributes = json.loads(event['Details']['Parameters']['sessionAttributes'])
+                  for k,v in passed_session_attributes.items():
+                      new_session_parameters.update({k : v})
+
+              #Write the current response values to the new var
+              for k,v in response.items():
+                  new_session_parameters.update({k : v})
+
+              #Create a new session attributes key with everything we have
+              new_session_parameters.update({'sessionAttributes': json.dumps(new_session_parameters, )})
+
+              #Return everything back
+              return new_session_parameters
+
+
+          """ --- Main handler --- """
+
+          def lambda_handler(event, context):
+              logger.info(f"Event: {event}")
+              #Create an empty response
+              response = {}
+              # Get environment from invoke parameters data.
+              env = event['Details']['Parameters']['environment']
+              logger.info(f"Environment: {env}")
+
+              table = dynamodb.Table(os.environ['DYN_LAMBDA_TABLE'])
+              try:
+                  response = table.get_item(
+                      Key={
+                          'environment': env
+                      }
+                  )
+                  response = response["Item"]
+              except Exception as e:
+                  logger.info("Environment parameter wasn't found in the DynamoDB table.")
+                  logger.error(f"Error: {e}")
+
+              #Set default prompts for error handling
+              defaultPrompts = {
+                "errorPrompt": "I'm sorry but there was an error when routing your call. Please try your call again later.",
+                "exitPrompt": "Thank you for calling. Goodbye."
+              }
+              response.update(defaultPrompts)
+
+              #Run the session attributes processor to update the response
+              response.update(session_attributes_processor(event,response))
+
+              return response
+
+      Description: 'This Lambda queries the DynamoDB table for additional functions based off the environment setting'
+      MemorySize: 128
+      Timeout: 3
+      Environment:
+        Variables:
+          DYN_LAMBDA_TABLE:
+            !Ref "DynamicLambdasTable"
+
+  GetDynAttributesFunction:
+    Type: AWS::Lambda::Function
+    DeletionPolicy: Delete
+    Properties:
+      Runtime: python3.7
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          from boto3.dynamodb.conditions import Key
+          import os
+          import json
+          import logging
+
+          """ --- Set logging --- """
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          """ --- Set dynamoDB resources --- """
+
+          dynamodb = boto3.resource('dynamodb')
+
+
+          """ --- Control Functions --- """
+
+          def session_attributes_processor(event,response):
+
+              #Establish a new session parameters var
+              new_session_parameters = {}
+
+              #If any exist, write the passed parameters from Connect to the new var
+              if event['Details']['Parameters']:
+                  for k,v in event['Details']['Parameters'].items():
+                      new_session_parameters.update({k : v})
+
+              #If any exist, write the previous session attributes from Connect to the new Var
+              if 'sessionAttributes' in event['Details']['Parameters']:
+                  new_session_parameters.pop('sessionAttributes')
+                  passed_session_attributes = json.loads(event['Details']['Parameters']['sessionAttributes'])
+                  for k,v in passed_session_attributes.items():
+                      new_session_parameters.update({k : v})
+
+              #Write the current response values to the new var
+              for k,v in response.items():
+                  new_session_parameters.update({k : v})
+
+              #Create a new session attributes key with everything we have
+              new_session_parameters.update({'sessionAttributes': json.dumps(new_session_parameters, )})
+
+              #Return everything back
+              return new_session_parameters
+
+          """ --- Main handler --- """
+
+          def lambda_handler(event, context):
+              #Create an empty response
+              response = {}
+              # Get dialed number from system contact data.
+              dialedNum = event['Details']['ContactData']['SystemEndpoint']['Address']
+              logger.info(f"Dialed number: {dialedNum}")
+
+              table = dynamodb.Table(os.environ['DIALED_NUMBERS_TABLE'])
+              try:
+                  response = table.get_item(
+                      Key={
+                          'dialedNumber': dialedNum
+                      }
+                  )
+                  response = response["Item"]
+              except Exception as e:
+                  response = str(e)
+                  return {
+                      'statusCode': 500,
+                      'body': response
+                  }
+
+              #Run the session attributes processor to update the response
+              response.update(session_attributes_processor(event,response))
+
+              return response
+
+
+      Description: 'This Lambda queries the DynamoDB table for attributes based off the dialed number'
+      MemorySize: 128
+      Timeout: 3
+      Environment:
+        Variables:
+          DIALED_NUMBERS_TABLE:
+            !Ref "DialedNumbersTable"
+
+  GetPromptsFunction:
+    Type: AWS::Lambda::Function
+    DeletionPolicy: Delete
+    Properties:
+      Runtime: python3.7
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          from boto3.dynamodb.conditions import Key
+          import os
+          import json
+          import logging
+
+          """ --- Set logging --- """
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          """ --- Set dynamoDB resources --- """
+
+          dynamodb = boto3.resource('dynamodb')
+
+          """ --- Control Functions --- """
+
+
+          def session_attributes_processor(event, response):
+              # Establish a new session parameters var
+              new_session_parameters = {}
+
+              # If any exist, write the passed parameters from Connect to the new var
+              if event['Details']['Parameters']:
+                  for k, v in event['Details']['Parameters'].items():
+                      new_session_parameters.update({k: v})
+
+              # If any exist, write the previous session attributes from Connect to the new Var
+              if 'sessionAttributes' in event['Details']['Parameters']:
+                  new_session_parameters.pop('sessionAttributes')
+                  passed_session_attributes = json.loads(event['Details']['Parameters']['sessionAttributes'])
+                  for k, v in passed_session_attributes.items():
+                      new_session_parameters.update({k: v})
+
+              # Write the current response values to the new var
+              for k, v in response.items():
+                  new_session_parameters.update({k: v})
+
+              # Create a new session attributes key with everything we have
+              new_session_parameters.update({'sessionAttributes': json.dumps(new_session_parameters)})
+
+              # Return everything back
+              return new_session_parameters
+
+
+          """ --- Main handler --- """
+
+
+          def lambda_handler(event, context):
+              # Create an empty response
+              response = {}
+              # Get language from system contact data.
+              lang = event['Details']['ContactData']['Attributes']['Language']
+
+              # Validate if language is has been provided
+              logger.info("Validating language")
+              logger.info(f"Language: {lang}")
+              if lang == "":
+                  logger.error("Language is not defined in user attributes. Validate contact attributes are set correctly")
+                  logger.info("Setting default language = English")
+                  language = "English"
+              else:
+                  logger.info(f"Language: {lang}")
+
+              # Get item from database
+              logger.info("Searching table for language")
+              table = dynamodb.Table(os.environ['DYN_PROMPTS_TABLE'])
+              logger.info(f"DynamoDB table loaded: {table}")
+
+              response = table.get_item(
+                  Key={
+                      'language': lang
+                  }
+              )
+              logger.info(f"Table response: {response}")
+
+              response = response["Item"]
+
+              # Run the session attributes processor to update the response
+              response.update(session_attributes_processor(event, response))
+
+              return response
+
+
+      Description: 'This Lambda queries the DynamoDB table for prompts specific to the language attribute'
+      MemorySize: 128
+      Timeout: 3
+      Environment:
+        Variables:
+          DYN_PROMPTS_TABLE:
+            !Ref "PromptsTable"
+
+  ###################################################
+  # IAM Roles
+  ###################################################
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: LambdaLogDynamoDBAccess
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - dynamodb:Query
+            - dynamodb:GetRecords
+            - dynamodb:UpdateItem
+            - dynamodb:GetRecord
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            Resource:
+            - !GetAtt DynamicLambdasTable.Arn
+            - !GetAtt DialedNumbersTable.Arn
+            - !GetAtt PromptsTable.Arn
+          - Effect: Allow
+            Action:
+            - logs:PutLogEvents
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            Resource:
+            - arn:aws:logs:*:*:*
+
+  ###################################################
+  # DynamoDB Tables
+  ###################################################
+  DynamicLambdasTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "environment"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "environment"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DialedNumbersTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "dialedNumber"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "dialedNumber"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  PromptsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "language"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "language"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  ###################################################
+  # Init Lambda Function
+  ###################################################
+  PopulateDynamoFunction:
+    Type: AWS::Lambda::Function
+    DeletionPolicy: Delete
+    DependsOn:
+    - DynamicLambdasTable
+    - DialedNumbersTable
+    - PromptsTable
+    Properties:
+      Handler: index.lambda_handler
+      Runtime: python3.7
+      Code:
+        ZipFile: |
+          # coding=utf-8
+          import os
+          from datetime import date, timedelta
+          import boto3
+          import cfnresponse
+
+          """ --- Set DynamoDB Resources --- """
+
+          dynamodb = boto3.resource('dynamodb')
+          lambdas_table = dynamodb.Table(os.environ['DYN_LAMBDA_TABLE'])
+          numbers_table = dynamodb.Table(os.environ['DIALED_NUMBERS_TABLE'])
+          prompts_table = dynamodb.Table(os.environ['DYN_PROMPTS_TABLE'])
+
+          """ --- Main Handler --- """
+
+
+          def lambda_handler(event, context):
+            org = (os.environ['ORG_NAME'])
+            current_delta = date.today() - timedelta(days=int(5))
+            current_delta_str = current_delta.strftime("%Y-%m-%d")
+            response_data = {'Dates': current_delta_str}
+
+            if event['RequestType'] == 'Delete':
+                cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)
+            if event['RequestType'] == 'Update':
+                cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)
+
+            if event['RequestType'] == 'Create':
+                lambdas_table.put_item(Item={
+                    "environment": (os.environ['ENVIRONMENT']),
+                    "getDynamicAttributes": (os.environ['DYN_ATTRIBUTES_ARN']),
+                    "getPrompts": (os.environ['DYN_PROMPTS_ARN'])
+                  })
+
+                numbers_table.put_item(Item={
+                    "dialedNumber": (os.environ['FIRST_LANGUAGE_NUMBER']),
+                    "name": "First language number",
+                    "queue": (os.environ['FIRST_LANGUAGE_QUEUE']),
+                    "language": (os.environ['FIRST_LANGUAGE'])
+                  })
+
+                numbers_table.put_item(Item={
+                    "dialedNumber": (os.environ['SECOND_LANGUAGE_NUMBER']),
+                    "name": "Second language number",
+                    "queue": (os.environ['SECOND_LANGUAGE_QUEUE']),
+                    "language": (os.environ['SECOND_LANGUAGE'])
+                  })
+
+                numbers_table.put_item(Item={
+                    "dialedNumber": (os.environ['THIRD_LANGUAGE_NUMBER']),
+                    "name": "Third language number",
+                    "queue": (os.environ['THIRD_LANGUAGE_QUEUE']),
+                    "language": (os.environ['THIRD_LANGUAGE'])
+                  })
+
+                prompts_table.put_item(Item={
+                    "language": "English",
+                    "introPrompt": (f"Thank you for calling {org}"),
+                    "recordingPrompt": "This call may be monitored or recorded for quality purposes.",
+                    "waitPrompt": "Please wait while we connect you with a specialist.",
+                    "holdPrompt": "Thank you for calling. Your call is very important to us and will be answered in the order it was received.",
+                    "closedPrompt": "I'm sorry but our office is currently closed. Please try your call again during our normal business hours.",
+                    "exitPrompt": (f"Thank you for calling {org}. Goodbye.")
+                  })
+
+                prompts_table.put_item(Item={
+                    "language": "Spanish",
+                    "introPrompt": (f"Gracias por llamar a {org}"),
+                    "recordingPrompt": "Esta convocatoria podrá ser monitoreada o grabada con fines de calidad.",
+                    "waitPrompt": "Espere por favor mientras le conectamos con un especialista.",
+                    "closedPrompt": "Lo siento pero actualmente nuestra oficina está cerrada. Por favor, vuelve a intentar tu llamada durante nuestro horario laboral normal.",
+                    "exitPrompt": (f"Gracias por llamar a  {org}. Adiós.")
+                  })
+
+                prompts_table.put_item(Item={
+                    "language": "French",
+                    "introPrompt": (f"Merci d'avoir appelé {org}"),
+                    "recordingPrompt": "Cet appel peut être surveillé ou enregistré à des fins de qualité.",
+                    "waitPrompt": "Veuillez patienter pendant que nous vous connectons avec un spécialiste.",
+                    "closedPrompt": "Je suis désolé mais notre bureau est actuellement fermé. Veuillez réessayer votre appel pendant nos heures normales de bureau.",
+                    "exitPrompt": (f"Merci d'avoir appelé {org}. Au revoir.")
+                  })
+                cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)
+
+
+      Description: 'This helper function populates the DynamoDB tables with data based of the CloudFormation template'
+      MemorySize: 128
+      Timeout: 3
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+          Variables:
+            DYN_LAMBDA_TABLE:
+              !Ref "DynamicLambdasTable"
+            DIALED_NUMBERS_TABLE:
+              !Ref "DialedNumbersTable"
+            DYN_PROMPTS_TABLE:
+              !Ref "PromptsTable"
+            ORG_NAME:
+              Ref: OrganizationName
+            ENVIRONMENT:
+              Ref: DeploymentEnvironment
+            DYN_ATTRIBUTES_ARN:
+              !GetAtt GetDynAttributesFunction.Arn
+            DYN_PROMPTS_ARN:
+              !GetAtt GetPromptsFunction.Arn
+            FIRST_LANGUAGE_NUMBER:
+              Ref: FirstLanguageNumber
+            FIRST_LANGUAGE_QUEUE:
+              Ref: FirstLanguageQueue
+            FIRST_LANGUAGE:
+              Ref: FirstLanguage
+            SECOND_LANGUAGE_NUMBER:
+              Ref: SecondLanguageNumber
+            SECOND_LANGUAGE_QUEUE:
+              Ref: SecondLanguageQueue
+            SECOND_LANGUAGE:
+              Ref: SecondLanguage
+            THIRD_LANGUAGE_NUMBER:
+              Ref: ThirdLanguageNumber
+            THIRD_LANGUAGE_QUEUE:
+              Ref: ThirdLanguageQueue
+            THIRD_LANGUAGE:
+              Ref: ThirdLanguage
+
+  ###################################################
+  # Run Helper Lambda - Adds items to DynamoDB tables
+  ###################################################
+  PopulateDynamoTables:
+    Type: AWS::CloudFormation::CustomResource
+    DependsOn: PopulateDynamoFunction
+    Version: "1.0"
+    Properties:
+      ServiceToken: !GetAtt PopulateDynamoFunction.Arn
+
+###################################################
+#
+# Outputs
+#
+###################################################
+
+Outputs:
+  LambdasTable:
+    Description: DynamoDB table name for lambdas table
+    Value: !Ref DynamicLambdasTable
+  LambdasFunction:
+    Description: Lambda function name for GetLambdas function
+    Value: !Ref GetLambdasFunction
+  DynamicAttributesTable:
+    Description: DynamoDB table name for the dialed numbers table
+    Value: !Ref DialedNumbersTable
+  DynamicAttributesFunction:
+    Description: Lambda function name for GetDynAttributes function
+    Value: !Ref GetDynAttributesFunction
+  DynamicPromptsTable:
+    Description: DynamoDB table name for prompts table
+    Value: !Ref PromptsTable
+  PromptsFunction:
+    Description: Lambda function name for GetPrompts function
+    Value: !Ref GetPromptsFunction
