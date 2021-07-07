@@ -195,3 +195,24 @@ Below are example CCP logs that indicate API calls failures.
 2020-10-15T13:18:15.332Z ccp ERROR 'sendSoftphoneCallReport' API request failed
 2020-10-15T13:18:15.332Z ccp ERROR Failed to handle AWS API request for method sendSoftphoneCallReport
 ```
+
+## How to build and deploy this tool
+
+To build this tool, clone the repository and run `npm install` and `npm run build` commands under `tools/CCPLogParser` directory:
+
+```
+$ git clone https://github.com/amazon-connect/amazon-connect-snippets.git
+$ cd amazon-connect-snippets/tools/CCPLogParser
+$ npm install
+$ npm run build
+```
+
+The above command will build the tool and output artifact in `build` folder. You can serve it with a static web server.
+
+```
+$ npm install -g serve
+$ serve -s build
+```
+
+You can also deploy this tool in your own environment if needed.  The easiest way to deploy the tool is to upload the artifact to an S3 bucket, and host it with CloudFront. You can find the guide on how to create a static website with S3 + CloudFront at https://aws.amazon.com/premiumsupport/knowledge-center/cloudfront-serve-static-website/
+
