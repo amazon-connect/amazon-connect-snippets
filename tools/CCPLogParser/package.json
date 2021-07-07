@@ -13,7 +13,6 @@
     "react-dom": "^16.9.0",
     "react-dropzone": "^10.1.7",
     "react-json-view": "^1.20.4",
-    "react-scripts": "^4.0.3",
     "react-scroll": "^1.7.13",
     "recharts": "^2.0.0-beta.6"
   },
@@ -42,6 +41,7 @@
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-react": "^7.22.0",
-    "eslint-plugin-react-hooks": "^4.2.0"
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "react-scripts": "^4.0.3"
   }
 }
