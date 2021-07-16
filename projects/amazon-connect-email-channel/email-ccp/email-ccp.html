@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <title>Amazon Connect</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+
+    <script type="text/javascript" src="js/connect-streams.js"></script>
+    <script type="text/javascript" src="js/amazon-connect-tasks.js"></script>
+    <style>
+        *,
+        body {
+            margin: 0;
+            padding: 0
+        }
+
+        iframe {
+            border: 0px
+        }
+
+        #containerDiv {
+            height: 500px
+        }
+
+        #ccpContainer {
+            overflow: hidden;
+            float: left;
+            padding: 10px;
+            height: 500px;
+
+        }
+
+        #section-main {
+            padding: 10px;
+            margin-left: 0px;
+            float: left;
+            overflow: auto;
+        }
+
+        #email_thread_container {
+            padding: 10px;
+            border: 1px solid;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="jumbotron text-center">
+        <h1>Amazon Connect Email</h1>
+        <h2><span id="name"></span></h2>
+    </div>
+
+
+    <div class="container">
+
+        <div class="row">
+
+            <div id="ccpContainer" class="col-sm-4" style="height:1000px;">
+                <div id="ccp-container" style="height:70%;"></div>
+            </div>
+            <form>
+                <div id="section-main" class="col-sm-2">
+
+                    <div id="contact-information">
+                        <span id="language_code"></span>
+                        <span id="sentiment_score"></span>
+                        <br>
+
+                        <p>How should responses be handled?</p><br>
+                        <a id="mail_to_link">General Information</a><br>
+                        <a id="mail_to_queue_link">This Queue</a><br>
+                        <a id="mail_to_agent_link">Myself</a><br>
+                        <hr>
+                        <a id="reject_mail">Reject email/Do not respond</a>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+
+                    <div id="from_section"><b>FROM:</b> <span id="from_container"></span></div>
+                    <div id="to_section"><b>TO:</b> <span id="to_container"></span></div>
+
+                    <div id="date_section"><b>DATE:</b> <span id="date_container"></span></div>
+                    <div id="subject_section"><b>SUBJECT:</b> <span id="subject_container"></span></div>
+                    <hr>
+                    <div id="email_thread_section">
+                        Email thread:
+                        <div id="email_thread_container">
+
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <script>
+        /*************** Begin Mod Area ***************/
+
+        /* Edit the instanceName below with your instance alias */
+        const connectUrl = "https://<YOUR CONNECT URL>";
+        const email_domain = "@<YOUR DOMAIN>";
+
+        /*************** End Mod Area ***************/
+
+        var email_data = {};
+        var contact_id = "";
+        var agent_username = "";
+        var queue_name = "";
+        var queue_id = "";
+        var attributeMap = {};
+
+        function clearScreen() {
+            document.getElementById("language_code").innerHTML = "";
+            document.getElementById("sentiment_score").innerHTML = "";
+            document.getElementById("email_thread_container").innerHTML = "";
+            document.getElementById("date_container").innerHTML = "";
+            document.getElementById("to_container").innerHTML = "";
+            document.getElementById("from_container").innerHTML = "";
+            document.getElementById("subject_container").innerHTML = "";
+            document.getElementById("mail_to_link").href = "";
+            document.getElementById("mail_to_queue_link").href = "";
+            document.getElementById("mail_to_agent_link").href = "";
+            document.getElementById("reject_mail").href = "";
+        }
+
+        connect.agentApp.initApp(
+            "ccp",
+            "ccp-container",
+            connectUrl + "/ccp-v2/",
+            { style: "width:400px; height:100%;" }
+        );
+
+        connect.agent(function (agent) {
+
+            document.getElementById("name").innerText = "Welcome " + agent.getName();
+            agent_username = agent.getConfiguration().username;
+
+            connect.contact(function (contact) {
+                contact.onEnded(function (contact) {
+                    clearScreen();
+                });
+
+                contact.onAccepted(function (contact) {
+                    contact_id = contact.getContactId();
+                    queue_name = contact.getQueue().name;
+                    queue_id = contact.getQueue().queueARN;
+                    attributeMap = contact.getAttributes();
+
+                    if ("detected_language" in attributeMap) {
+                        document.getElementById("language_code").innerHTML = "<h4>Language Code: " + attributeMap["detected_language"].value + "</h4>";
+                    }
+                    if ("detected_sentiment" in attributeMap) {
+                        document.getElementById("sentiment_score").innerHTML = "<h4>Overall Sentiment: " + attributeMap["detected_sentiment"].value + "</h4>";
+                    }
+
+
+                    document.getElementById("mail_to_link").href = "mailto:relay+" + attributeMap['interaction_id'].value + email_domain + "?subject=" + attributeMap['subject'].value;
+
+                    document.getElementById("mail_to_queue_link").href = "mailto:queuerelay+" + attributeMap['interaction_id'].value + email_domain + "?subject=" + attributeMap['subject'].value;
+                    document.getElementById("mail_to_agent_link").href = "mailto:agentrelay+" + attributeMap['interaction_id'].value + email_domain + "?subject=" + attributeMap['subject'].value;
+                    document.getElementById("reject_mail").href = "mailto:rejectrelay+" + attributeMap['interaction_id'].value + email_domain + "?subject=" + attributeMap['subject'].value + "&body=Send but do not modify this email.";
+
+                    if ("get_email_url" in attributeMap) {
+                        $.get(attributeMap["get_email_url"].value, function (data, status) {
+                            console.log(status);
+                            email_data = data;
+                            if (data.html) {
+                                document.getElementById("email_thread_container").innerHTML = data.html;
+                            } else {
+                                document.getElementById("email_thread_container").innerHTML = data.text;
+                            }
+                            if (data.date) {
+                                document.getElementById("date_container").innerHTML = data.date;
+                            }
+                            if (data.to) {
+                                document.getElementById("to_container").innerHTML = data.to.value[0].address;
+                            }
+                            if (data.from) {
+                                document.getElementById("from_container").innerHTML = data.from.value[0].address + ' ' + data.from.value[0].name;
+                            }
+                            if (data.subject) {
+                                document.getElementById("subject_container").innerHTML = data.subject;
+                            }
+                        });
+
+                    }
+                });
+
+            });
+
+        });
+
+
+    </script>
+</body>
+
+</html>

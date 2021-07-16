@@ -1,0 +1,80 @@
+{
+    "modules": [
+        {
+            "id": "12cc4e1a-fa25-4df7-a838-20378154db28",
+            "type": "InvokeExternalResource",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "d65223c4-df50-41fe-94f6-72f1037b4f08"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "d65223c4-df50-41fe-94f6-72f1037b4f08"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "FunctionArn",
+                    "value": "ConnectWhisperFlowPythonLambda",
+                    "namespace": null
+                },
+                {
+                    "name": "TimeLimit",
+                    "value": "8"
+                },
+                {
+                    "name": "Parameter",
+                    "key": "Queue",
+                    "value": "Queue.ARN",
+                    "namespace": "System"
+                },
+                {
+                    "name": "Parameter",
+                    "key": "Agent",
+                    "value": "Agent.UserName",
+                    "namespace": "System"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 213,
+                    "y": 118
+                },
+                "dynamicMetadata": {
+                    "Queue": true,
+                    "Agent": true
+                },
+                "useDynamic": false
+            },
+            "target": "Lambda"
+        },
+        {
+            "id": "d65223c4-df50-41fe-94f6-72f1037b4f08",
+            "type": "Resume",
+            "branches": [],
+            "parameters": [],
+            "metadata": {
+                "position": {
+                    "x": 499,
+                    "y": 124
+                }
+            }
+        }
+    ],
+    "version": "1",
+    "type": "agentWhisper",
+    "start": "12cc4e1a-fa25-4df7-a838-20378154db28",
+    "metadata": {
+        "entryPointPosition": {
+            "x": 20,
+            "y": 15
+        },
+        "snapToGrid": false,
+        "name": "email-AgentWhisper",
+        "description": null,
+        "type": "agentWhisper",
+        "status": "published",
+        "hash": "5dda5199a6b57a50627e07013bcd03e1399df004b5dd8d906f3c461e7d06e7dc"
+    }
+}

@@ -1,0 +1,230 @@
+{
+    "modules": [
+        {
+            "id": "b5075801-06b8-4355-83e1-2f3c79c15fc5",
+            "type": "SetAttributes",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "e6f70dd1-dcf3-446b-a511-442f4a492bae"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "2f63398d-3dd8-4060-94fd-89ee3843f6ed"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Attribute",
+                    "value": "get_email_url",
+                    "key": "get_email_url",
+                    "namespace": "External"
+                },
+                {
+                    "name": "Attribute",
+                    "value": "url_timeout",
+                    "key": "url_timeout",
+                    "namespace": "External"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 898,
+                    "y": 226
+                },
+                "isSplitModule": true
+            }
+        },
+        {
+            "id": "e6f70dd1-dcf3-446b-a511-442f4a492bae",
+            "type": "SetContactData",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "2f63398d-3dd8-4060-94fd-89ee3843f6ed"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "2f63398d-3dd8-4060-94fd-89ee3843f6ed"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "ContactData",
+                    "namespace": "External",
+                    "contactReference": {
+                        "key": "View Original Email",
+                        "value": "get_raw_email_url",
+                        "type": "URL"
+                    }
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 898,
+                    "y": 226
+                },
+                "isSplitModule": true
+            }
+        },
+        {
+            "id": "2f63398d-3dd8-4060-94fd-89ee3843f6ed",
+            "type": "Transfer",
+            "branches": [
+                {
+                    "condition": "AtCapacity",
+                    "transition": "79d20a1d-f2ea-4fdf-a682-f792fba179dd"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "79d20a1d-f2ea-4fdf-a682-f792fba179dd"
+                }
+            ],
+            "parameters": [],
+            "metadata": {
+                "position": {
+                    "x": 1167,
+                    "y": 230
+                },
+                "useDynamic": false,
+                "queue": null
+            },
+            "target": "Queue"
+        },
+        {
+            "id": "79d20a1d-f2ea-4fdf-a682-f792fba179dd",
+            "type": "Disconnect",
+            "branches": [],
+            "parameters": [],
+            "metadata": {
+                "position": {
+                    "x": 1471,
+                    "y": 285.20001220703125
+                }
+            }
+        },
+        {
+            "id": "8de1442d-faca-4e4b-a5a1-ede545e63203",
+            "type": "InvokeExternalResource",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "b5075801-06b8-4355-83e1-2f3c79c15fc5"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "b5075801-06b8-4355-83e1-2f3c79c15fc5"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "FunctionArn",
+                    "value": "arn:aws:lambda:us-east-1:553382741890:function:email-channel-ConnectGenerateURLLambda-kNs8Izg8msLl",
+                    "namespace": null
+                },
+                {
+                    "name": "TimeLimit",
+                    "value": "8"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 656,
+                    "y": 232
+                },
+                "dynamicMetadata": {},
+                "useDynamic": false
+            },
+            "target": "Lambda"
+        },
+        {
+            "id": "835094cc-d329-416a-a8ec-3bb59f56df6a",
+            "type": "SetEventHook",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "ed3529ff-ab9b-4f40-add4-0fde47ca25f0"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "ed3529ff-ab9b-4f40-add4-0fde47ca25f0"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Type",
+                    "value": "AgentWhisper"
+                },
+                {
+                    "name": "ContactFlowId",
+                    "value": "arn:aws:connect:us-east-1:553382741890:instance/115a8403-a619-49ee-a556-c27d72399d56/contact-flow/553caaa2-cfba-4c89-8121-bc295c5bbfd8",
+                    "resourceName": "task-AgentWhisper"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 163,
+                    "y": 242
+                },
+                "contactFlow": {
+                    "id": "arn:aws:connect:us-east-1:553382741890:instance/115a8403-a619-49ee-a556-c27d72399d56/contact-flow/553caaa2-cfba-4c89-8121-bc295c5bbfd8",
+                    "text": "task-AgentWhisper"
+                },
+                "customerOrAgent": false,
+                "useDynamic": false
+            }
+        },
+        {
+            "id": "ed3529ff-ab9b-4f40-add4-0fde47ca25f0",
+            "type": "SetEventHook",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "8de1442d-faca-4e4b-a5a1-ede545e63203"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "8de1442d-faca-4e4b-a5a1-ede545e63203"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Type",
+                    "value": "CustomerQueue"
+                },
+                {
+                    "name": "ContactFlowId",
+                    "value": "arn:aws:connect:us-east-1:553382741890:instance/115a8403-a619-49ee-a556-c27d72399d56/contact-flow/fa10918d-a69c-4e85-bdb8-ad204e44e865",
+                    "resourceName": "Task-QueueFlow"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 405,
+                    "y": 228
+                },
+                "contactFlow": {
+                    "id": "arn:aws:connect:us-east-1:553382741890:instance/115a8403-a619-49ee-a556-c27d72399d56/contact-flow/fa10918d-a69c-4e85-bdb8-ad204e44e865",
+                    "text": "Task-QueueFlow"
+                },
+                "customerOrAgent": true,
+                "useDynamic": false
+            }
+        }
+    ],
+    "version": "1",
+    "type": "queueTransfer",
+    "start": "835094cc-d329-416a-a8ec-3bb59f56df6a",
+    "metadata": {
+        "entryPointPosition": {
+            "x": 15,
+            "y": 20
+        },
+        "snapToGrid": false,
+        "name": "email-QueueTransfer",
+        "description": null,
+        "type": "queueTransfer",
+        "status": "published",
+        "hash": "b4cf5be34f7b1c68a57d45c462343d23eaf44c2603da1e8474891f5bb6a48a64"
+    }
+}
