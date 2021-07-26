@@ -20,7 +20,7 @@ While not in the scope of this document, it would be recommended to keep track o
 7.	When an agent is available to handle the callback created the call pops on the Contact Control Panel and the customer is called back.
 
 Additional data can be attached and shown on the CCP the same way that the callback number is handled. This is not covered in this document.
-![Screenshot of flow diagram](images/flowDiagram.PNG)
+![Screenshot of flow diagram](images/flowDiagram.png)
  
 
 
@@ -36,9 +36,9 @@ Additional data can be attached and shown on the CCP the same way that the callb
 6.	Click the Select button and select the downloaded CreateCallback file from step 1.
 7.	Save and Publish your contact flow.
 8.	Make a note of the ID for the flow. You will use it for the Lambda later.
-![Screenshot of contact flow id](images/contactFlow.PNG)
+![Screenshot of contact flow id](images/contactFlow.png)
 9.	Make a note of the ID for the callback queue that you have configured. (create one if you do not already have a callback queue)
-![Screenshot of queue id](images/queue.PNG)
+![Screenshot of queue id](images/queue.png)
 10.	Make sure you have claimed a phone number for your Connect instance and that this number is pointing to an inbound flow that is <B>NOT</B> the imported CreateCallback flow.
 
 
@@ -55,7 +55,7 @@ We will use a CloudFormation template to programmatically deploy the backend log
 5.	Select an appropriate Stack name and provide names for the Lambda and Role that will be created.
 6.	Enter the appropriate data for the parameters requested. These are related to the Amazon Connect instance you have set up.
 7.	Click the Create stack button after selecting the checkbox.
-![Screenshot of permission dialog](images/permissions.PNG)
+![Screenshot of permission dialog](images/permissions.png)
 
  
 ## Call the Lambda
