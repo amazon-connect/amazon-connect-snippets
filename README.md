@@ -29,6 +29,7 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Remote Control Center | Centrally manage prompts and routing configurations in DynamoDB | [Python](python/remote-control-center) |
 | Contact Flow Helper | A single AWS Lambda function which provides a set of basic math and text tools to help manipulate data in contact flows | [Python](python/contactflowhelper)|
 | Create Tasks Programmatically | CloudFormation template to enable you to programmatically create an Amazon Connect Task | [Javascript](javascript/programmatically-create-task-example)
+| Custom Agent Desktop with Azure SSO Integration | How to launch a custom Amazon Connect Agent Desktop from Microsoft 365 Application Launcher | [Javascript](javascript/customAgentDesktop-AzureSSO)
 
 ## Projects
 
