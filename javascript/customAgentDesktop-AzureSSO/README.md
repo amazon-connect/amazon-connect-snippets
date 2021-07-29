@@ -48,7 +48,7 @@ Launching Amazon Connect is a common requirement for enterprise customers who ma
             domain: 'AWS Cloudformation Output: CognitoDomain',
             redirectUrl: 'AWS Cloudformation Output: CloudFrontRedirectUrl',
         },
-        connectLoginURL: 'Amazon Connect: LoginURL',
+        connectLoginURL: 'Amazon Connect: LoginURL for my.connect.aws domains. If you have an older Connect instance then remove the "/connect/login" portion',
         azureAD: {
             ccpUserAccessURL: 'Microsoft User access URL (Properties menu) for the CCP from the prerequisites section.  See "Create a second Azure AD AWS SAML application for Amazon Connect agents" section in the blog',
             customAgentDesktopUserAccessURL: 'Microsoft User access URL (Properties menu) from step 1'
@@ -70,10 +70,13 @@ Launching Amazon Connect is a common requirement for enterprise customers who ma
         1. Identifier (Entity ID) = AWS Cloudformation Output: AzureADIdentifier
         1. Reply URL = AWS Cloudformation Output: AzureADReplyURL
         1. Sign on URL = AWS Cloudformation Output: AzureADSignOnUrl
-    1. Add users to the applications.  It's best practice to create a group and attach it to both applications: 1) ccpUser and 2) customAgentDesktop
-1. Set the "Visible to users" value to No for the Microsoft 365 Application in the prerequisites section
+    1. Add users to the applications.  It's best practice to create a security group and attach it to both applications.  The applications are this one and the one created in the blog in section "Create a second Azure AD AWS SAM"
+1. Make these updates to the CCP Microsoft 365 Application that was configured in the prerequisites section.  The section in the blog is "Create a second Azure AD AWS SAML application for Amazon Connect agents":     
+    1. Set the "Visible to users" value to No.  This is under properties.
+    1. The blog sets the Relay State URL to https://<regionid>.console.aws.amazon.com/connect/federate/<instanceid>?destination=%2Fconnect%2Fccp.  Change ccp to ccp-v2 since the Agent Desktop is using version 2.
 1. Update the Amazon Connect Approved origins for your instance.  The value is AWS Cloudformation Output: CloudFrontRedirectUrl
 1. Set your browser to allow popups from AWS Cloudformation Output: CloudFrontRedirectUrl 
+    1. You also need to Enabling 3rd Party Cookies if you are using Incognito mode.  See https://blog.google/products/chrome/more-intuitive-privacy-and-security-controls-chrome/ section "Third-party cookie controls in Incognito mode" for additional information.
 1. Confirm that your command-line environment is running Node v12+ 
     1.  Check version command: `node -v`
     1.  How to install the stable version:
