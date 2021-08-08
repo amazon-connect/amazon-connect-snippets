@@ -15,15 +15,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { fade, withStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles';
+import Select from 'aws-northstar/components/Select';
+import Input from 'aws-northstar/components/Input';
+import Button from 'aws-northstar/components/Button';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import SearchIcon from '@material-ui/icons/Search';
-import InputBase from '@material-ui/core/InputBase';
-import Button from '@material-ui/core/Button';
 import UnfoldLess from '@material-ui/icons/UnfoldLess';
 import UnfoldMore from '@material-ui/icons/UnfoldMore';
 import LogLineView from './LogLineView';
@@ -32,6 +29,11 @@ const styles = (theme) => ({
     root: {},
     menuButton: {
         marginRight: theme.spacing(2),
+    },
+    actionGroup: {
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
     },
     header: {
         position: 'sticky',
@@ -51,6 +53,8 @@ const styles = (theme) => ({
         alignItems: 'center',
     },
     title: {
+        fontSize: '1.2rem',
+        fontWeight: '700',
         minWidth: 120,
         display: 'none',
         [theme.breakpoints.up('sm')]: {
@@ -58,19 +62,8 @@ const styles = (theme) => ({
         },
     },
     regexFilter: {
-        position: 'relative',
-        borderRadius: theme.shape.borderRadius,
-        backgroundColor: fade(theme.palette.common.white, 0.45),
-        '&:hover': {
-            backgroundColor: fade(theme.palette.common.white, 0.75),
-        },
-        marginLeft: 0,
+        marginTop: 3,
         flexGrow: 1,
-        width: '100%',
-        [theme.breakpoints.up('sm')]: {
-            marginLeft: theme.spacing(1),
-            width: 'auto',
-        },
     },
     searchIcon: {
         width: theme.spacing(7),
@@ -81,15 +74,6 @@ const styles = (theme) => ({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    inputRoot: {
-        color: 'inherit',
-        width: '100%',
-    },
-    inputInput: {
-        padding: theme.spacing(1, 1, 1, 7),
-        transition: theme.transitions.create('width'),
-        width: '100%',
-    },
     levelFilter: {
         margin: theme.spacing(1),
         minWidth: 120,
@@ -97,6 +81,7 @@ const styles = (theme) => ({
     expand: {
         display: 'none',
         minWidth: 16,
+        maxWidth: 32,
         [theme.breakpoints.up('md')]: {
             display: 'inherit',
         },
@@ -125,13 +110,16 @@ const styles = (theme) => ({
 });
 
 const LogLevel = {
-    ERROR: { value: 6, string: 'error' },
-    WARN: { value: 5, string: 'warn' },
-    INFO: { value: 4, string: 'info' },
-    TRACE: { value: 3, string: 'trace' },
-    DEBUG: { value: 2, string: 'debug' },
-    LOG: { value: 1, string: 'log' },
+    ERROR: 6,
+    WARN: 5,
+    INFO: 4,
+    TRACE: 3,
+    DEBUG: 2,
+    LOG: 1,
 };
+const LogLevelOptions = Object.entries(LogLevel).map(([label, value]) => (
+    { label, value }
+));
 
 class LogView extends React.PureComponent {
     constructor(props) {
@@ -143,7 +131,7 @@ class LogView extends React.PureComponent {
 
     getInitialState() {
         return {
-            levelFilter: 'LOG',
+            levelFilter: LogLevel.LOG,
             regexFilter: '',
             moreInfoOpen: [],
         };
@@ -154,9 +142,8 @@ class LogView extends React.PureComponent {
         this.setState({ levelFilter: event.target.value });
     }
 
-    handleChangeRegexFilter(event) {
-        event.preventDefault();
-        this.setState({ regexFilter: event.target.value });
+    handleChangeRegexFilter(value) {
+        this.setState({ regexFilter: value });
     }
 
     render() {
@@ -182,47 +169,29 @@ class LogView extends React.PureComponent {
                                 Log
                             </Typography>
                             <div className={classes.regexFilter}>
-                                <div className={classes.searchIcon}>
-                                    <SearchIcon />
-                                </div>
-                                <InputBase
-                                    placeholder="Filter…"
+                                <Input
+                                    placeholder="Filter ..."
+                                    type="search"
                                     value={regexFilter}
                                     onChange={this.handleChangeRegexFilter}
-                                    classes={{
-                                        root: classes.inputRoot,
-                                        input: classes.inputInput,
-                                    }}
-                                    inputProps={{ 'aria-label': 'search' }}
                                 />
                             </div>
-                            <FormControl className={classes.levelFilter}>
+                            <div className={classes.levelFilter}>
                                 <Select
-                                    value={levelFilter}
+                                    options={LogLevelOptions}
+                                    selectedOption={{ value: levelFilter }}
                                     onChange={this.handleChangeLevelFilter}
-                                    inputProps={{
-                                        name: 'level',
-                                        id: 'level-filter',
-                                    }}
-                                >
-                                    <MenuItem value="ERROR">ERROR</MenuItem>
-                                    <MenuItem value="WARN">WARN</MenuItem>
-                                    <MenuItem value="INFO">INFO</MenuItem>
-                                    <MenuItem value="TRACE">TRACE</MenuItem>
-                                    <MenuItem value="DEBUG">DEBUG</MenuItem>
-                                    <MenuItem value="LOG">LOG</MenuItem>
-                                </Select>
-                            </FormControl>
-
+                                />
+                            </div>
                             { !isExpanded
-                                ? <Button className={classes.expand} onClick={() => expand()}><UnfoldMore style={{ transform: 'rotate(90deg)' }} /></Button>
-                                : <Button className={classes.expand} onClick={() => expand()}><UnfoldLess style={{ transform: 'rotate(90deg)' }} /></Button> }
+                                ? <Button variant="link" className={classes.expand} onClick={() => expand()}><UnfoldMore style={{ transform: 'rotate(90deg)' }} /></Button>
+                                : <Button variant="link" className={classes.expand} onClick={() => expand()}><UnfoldLess style={{ transform: 'rotate(90deg)' }} /></Button> }
                         </div>
                     </div>
                     <div className={classes.content}>
                         <div className={classes.rows}>
                             { log.map((event) => {
-                                if (LogLevel[event.level].value >= LogLevel[levelFilter].value
+                                if (LogLevel[event.level] >= levelFilter
                         && (re
                             // test against the one-line log expression
                             ? (re.exec(`${event.time} ${event.component} ${event.level} ${event.text}`)

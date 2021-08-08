@@ -17,8 +17,7 @@ import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { scroller } from 'react-scroll';
 import { withStyles } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
+import Container from 'aws-northstar/layouts/Container';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -143,14 +142,10 @@ class SnapshotListView extends React.PureComponent {
 
         return (
             <div className={clsx(classes.root, classNameProp)}>
-                <Paper style={{ height: '100%' }}>
-                    <div className={classes.header}>
-                        <div className={classes.headerInside}>
-                            <Typography className={classes.title} variant="h6" component="h3">
-                                Snapshots
-                            </Typography>
-                        </div>
-                    </div>
+                <Container
+                    title="Snapshots"
+                    gutters={false}
+                >
                     <div className={classes.content}>
                         <List className={classes.list} subheader={<li />}>
                             {Object.keys(snapshotsByDate).map((date) => (
@@ -176,7 +171,7 @@ class SnapshotListView extends React.PureComponent {
                             ))}
                         </List>
                     </div>
-                </Paper>
+                </Container>
             </div>
         );
     }
