@@ -1,0 +1,270 @@
+Description: How to launch a custom Amazon Connect Agent Desktop from Microsoft 365 Application launcher
+
+Parameters:
+    AzureADAppFederationMetadataUrl:
+        Type: String
+        Description: "App Federation Metadata Url.  This is in AzureAd.  1) Select the Enterprise Application, 2) Select Single sign-on, 3) See SAML Signing Certificate section"
+
+Resources:
+    WebsiteHostBucket:
+        Type: AWS::S3::Bucket
+        DeletionPolicy: Retain
+        Properties:
+            AccessControl: Private
+            BucketName: !Join ["-", [agentdesktophost, !Select [2, !Split [/, !Ref AWS::StackId ]]]]
+            PublicAccessBlockConfiguration: 
+                BlockPublicAcls: True
+                BlockPublicPolicy: True
+                IgnorePublicAcls: True
+                RestrictPublicBuckets: True
+            
+    CfOIA:
+        Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+        Properties:
+            CloudFrontOriginAccessIdentityConfig:
+                Comment: !Ref WebsiteHostBucket
+            
+    WebsiteHostBucketPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+            Bucket: !Ref WebsiteHostBucket
+            PolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                -   Effect: Allow
+                    Action: s3:GetObject
+                    Resource: !Sub arn:aws:s3:::${WebsiteHostBucket}/*
+                    Principal:
+                        CanonicalUser: !GetAtt CfOIA.S3CanonicalUserId
+
+    CfDistribution:
+        Type: AWS::CloudFront::Distribution
+        Properties:
+            DistributionConfig:
+                Comment: "Custom Amazon Connect Agent Desktop"
+                DefaultCacheBehavior:
+                    AllowedMethods:
+                        - GET
+                        - HEAD
+                    CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 #Managed-CachingOptimized
+                    Compress: false
+                    TargetOriginId: agentdesktophost-s3
+                    ViewerProtocolPolicy: redirect-to-https
+                DefaultRootObject: index.html
+                Enabled: true
+                HttpVersion: http2
+                Origins:
+                -   DomainName: !Join ["", [!Ref WebsiteHostBucket, ".s3.", !Ref AWS::Region, ".amazonaws.com"]]
+                    Id: agentdesktophost-s3
+                    S3OriginConfig:
+                        OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${CfOIA}
+                PriceClass: PriceClass_All
+                
+    CgUserPool:
+        Type: AWS::Cognito::UserPool
+        Properties: 
+            AccountRecoverySetting: 
+                RecoveryMechanisms: 
+                -   Name: admin_only
+                    Priority: 1
+            AdminCreateUserConfig:
+                AllowAdminCreateUserOnly: True
+            UsernameAttributes: 
+            -   email
+            UsernameConfiguration:
+                CaseSensitive: True
+            UserPoolName: "Custom Amazon Connect Agent Desktop"
+
+    CgUserPoolDomain: 
+        Type: AWS::Cognito::UserPoolDomain
+        Properties: 
+            Domain: !Join ["-", [agentdesktop, !Select [2, !Split [/, !Ref AWS::StackId ]]]]
+            UserPoolId: !Ref CgUserPool
+            
+    CgUserPoolIp:
+        Type: AWS::Cognito::UserPoolIdentityProvider
+        Properties: 
+            AttributeMapping:
+                email: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress
+            ProviderDetails:
+                MetadataURL: !Ref AzureADAppFederationMetadataUrl
+            ProviderName: AzureAD
+            ProviderType: SAML 
+            UserPoolId: !Ref CgUserPool
+            
+    CgUserPoolClient:
+        Type: AWS::Cognito::UserPoolClient
+        Properties: 
+            AllowedOAuthFlows:
+            -   code
+            AllowedOAuthFlowsUserPoolClient: True
+            AllowedOAuthScopes:
+            -   email
+            -   openid
+            -   aws.cognito.signin.user.admin
+            CallbackURLs:
+            -   !Join ["", [https://, !GetAtt CfDistribution.DomainName]]
+            ClientName: "Custom Amazon Connect Agent Desktop"
+            ExplicitAuthFlows:
+            -   ALLOW_USER_SRP_AUTH
+            -   ALLOW_REFRESH_TOKEN_AUTH
+            GenerateSecret: False
+            LogoutURLs:
+            -   !Join ["", [https://, !GetAtt CfDistribution.DomainName]]
+            PreventUserExistenceErrors: ENABLED
+            SupportedIdentityProviders: 
+            -   !Ref CgUserPoolIp
+            UserPoolId: !Ref CgUserPool
+            
+    ApiGwMockRestApi:
+        Type: AWS::ApiGateway::RestApi
+        Properties:
+            Description: "Custom Amazon Connect Agent Desktop Mock API"
+            EndpointConfiguration:
+                Types:
+                -   REGIONAL
+            Name: AgentDesktopMockApi
+            
+    ApiGwMockResource:
+        Type: AWS::ApiGateway::Resource
+        Properties:
+            ParentId: !GetAtt ApiGwMockRestApi.RootResourceId
+            PathPart: "mock"
+            RestApiId: !Ref ApiGwMockRestApi
+            
+    ApiGwMockAuthorizer:
+        Type: AWS::ApiGateway::Authorizer
+        Properties:
+            IdentitySource: method.request.header.authorization
+            Name: AgentDesktopMockAuthorizer
+            ProviderARNs: 
+            -   !GetAtt CgUserPool.Arn
+            RestApiId: !Ref ApiGwMockRestApi
+            Type: COGNITO_USER_POOLS
+            
+    ApiGwMockGetMethod:
+        Type: AWS::ApiGateway::Method
+        Properties:
+            ApiKeyRequired: false
+            AuthorizationType: COGNITO_USER_POOLS
+            AuthorizerId: !Ref ApiGwMockAuthorizer
+            HttpMethod: GET
+            Integration:
+                ConnectionType: INTERNET
+                IntegrationHttpMethod: GET
+                IntegrationResponses:
+                -   ResponseParameters:
+                        method.response.header.Access-Control-Allow-Origin: "'*'"
+                    ResponseTemplates:
+                        application/json: "{\"message\": \"Agent Desktop Mock API worked!\"}"
+                    SelectionPattern: '2\d{2}'
+                    StatusCode: 200
+                PassthroughBehavior: WHEN_NO_TEMPLATES
+                RequestTemplates:
+                    application/json: '{"statusCode": 200}'
+                Type: MOCK
+            MethodResponses:
+            -   ResponseParameters:
+                    method.response.header.Access-Control-Allow-Origin: false
+                ResponseModels:
+                    application/json: 'Empty'
+                StatusCode: 200
+            ResourceId: !Ref ApiGwMockResource
+            RestApiId: !Ref ApiGwMockRestApi
+            
+    ApiGwMockOptionsMethod:
+        Type: AWS::ApiGateway::Method
+        Properties:
+            AuthorizationType: NONE
+            HttpMethod: OPTIONS
+            Integration:
+                IntegrationResponses:
+                -   ResponseParameters:
+                        method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                        method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+                        method.response.header.Access-Control-Allow-Origin: "'*'"
+                    ResponseTemplates:
+                        application/json: ''
+                    StatusCode: 200
+                PassthroughBehavior: WHEN_NO_MATCH
+                RequestTemplates:
+                    application/json: '{"statusCode": 200}'
+                Type: MOCK
+            MethodResponses:
+            -   ResponseParameters:
+                    method.response.header.Access-Control-Allow-Headers: false
+                    method.response.header.Access-Control-Allow-Methods: false
+                    method.response.header.Access-Control-Allow-Origin: false
+                ResponseModels:
+                    application/json: 'Empty'
+                StatusCode: 200
+            ResourceId: !Ref ApiGwMockResource
+            RestApiId: !Ref ApiGwMockRestApi
+            
+    ApiGwMockDeployment:
+        Type: AWS::ApiGateway::Deployment
+        DependsOn: [ApiGwMockGetMethod, ApiGwMockOptionsMethod]
+        Properties:
+            RestApiId: !Ref ApiGwMockRestApi
+            
+    ApiGwMockStage:
+        Type: AWS::ApiGateway::Stage
+        Properties:
+            DeploymentId: !Ref ApiGwMockDeployment
+            RestApiId: !Ref ApiGwMockRestApi
+            StageName: "dev"
+                        
+Outputs:
+    Region:
+        Value: !Ref AWS::Region
+        
+    CognitoUserPoolId:
+        Value: !Ref CgUserPool
+        
+    CognitoClientId:
+        Value: !Ref CgUserPoolClient
+        
+    CognitoDomain:
+        Value: !Join ["", [!Ref CgUserPoolDomain, ".auth.", !Ref AWS::Region, ".amazoncognito.com"]]
+        
+    CloudFrontRedirectUrl:
+        Value: !Join ["", [https://, !GetAtt CfDistribution.DomainName]]
+        
+    CloudFrontDistributionId:
+        Value: !Ref CfDistribution
+        
+    WebsiteHostBucket:
+        Value: !Ref WebsiteHostBucket
+        
+    MockApiEndpoint:
+        Value: !Join ["", [
+            https://, 
+            !Ref ApiGwMockRestApi, 
+            ".execute-api.",
+            !Ref AWS::Region,
+            ".amazonaws.com" #StageName and PathPart
+        ]]
+        
+    MockApiPath:
+        Value: "/dev/mock"  #StageName and PathPart
+        
+    AzureADIdentifier:
+        Value: !Join ["", ["urn:amazon:cognito:sp:", !Ref CgUserPool]]
+     
+    AzureADReplyURL :
+        Value: !Join ["", [
+            "https://", 
+            !Join ["", [!Ref CgUserPoolDomain, ".auth.", !Ref AWS::Region, ".amazoncognito.com"]], #Copy from CognitoDomain
+            "/saml2/idpresponse"
+        ]]  
+        
+    AzureADSignOnUrl :
+        Value: !Join ["", [
+            "https://", 
+            !Join ["", [!Ref CgUserPoolDomain, ".auth.", !Ref AWS::Region, ".amazoncognito.com"]], #Copy from CognitoDomain
+            "/oauth2/authorize?identity_provider=AzureAD&redirect_uri=", 
+            !Join ["", [https://, !GetAtt CfDistribution.DomainName]],  #Copy from CloudFrontRedirectUrl
+            "&response_type=code&client_id=", 
+            !Ref CgUserPoolClient #Copy from CognitoClientId
+        ]]   
+    
