@@ -87,7 +87,7 @@ exports.handler = (event, context) => {
                                     "value": 0.02
                                 }]
                             },
-                            "period": 300,
+                            "period": 60,
                             "title": "Packet Loss Rate"
                         }
                     },
@@ -104,7 +104,9 @@ exports.handler = (event, context) => {
                                 ["AWS/Connect", "ThrottledCalls", "InstanceId", `${connectInstanceId}`, "MetricGroup", "VoiceCalls"]
                             ],
                             "region": "ap-southeast-2",
-                            "title": "Throttled Calls"
+                            "title": "Throttled Calls",
+                            "period": 60,
+                            "stat": "Maximum"
                         }
                     },
                     {
@@ -119,7 +121,7 @@ exports.handler = (event, context) => {
                             "stacked": false,
                             "region": "ap-southeast-2",
                             "stat": "Sum",
-                            "period": 300,
+                            "period": 60,
                             "title": "Contact Flow Errors"
                         }
                     },
@@ -135,7 +137,7 @@ exports.handler = (event, context) => {
                             "stacked": false,
                             "region": "ap-southeast-2",
                             "stat": "Sum",
-                            "period": 300,
+                            "period": 60,
                             "title": "Contact Flow Fatal Errors"
                         }
                     },
@@ -149,24 +151,9 @@ exports.handler = (event, context) => {
                             "metrics": queuesFormation,
                             "view": "singleValue",
                             "region": "ap-southeast-2",
-                            "period": 300,
-                            "stat": "Average",
-                            "title": "Longest Queue Wait Time (average)"
-                        }
-                    },
-                    {
-                        "height": 3,
-                        "width": 12,
-                        "y": 9,
-                        "x": 6,
-                        "type": "metric",
-                        "properties": {
-                            "metrics": queuesFormation,
-                            "view": "singleValue",
-                            "region": "ap-southeast-2",
                             "period": 60,
                             "stat": "Maximum",
-                            "title": "Longest Queue Wait Time (maximum)"
+                            "title": "Longest Queue Wait Time"
                         }
                     },
                     {
@@ -182,7 +169,9 @@ exports.handler = (event, context) => {
                                 ["AWS/Connect", "ConcurrentCalls", "InstanceId", `${connectInstanceId}`, "MetricGroup", "VoiceCalls"]
                             ],
                             "region": "ap-southeast-2",
-                            "title": "Concurrent Calls"
+                            "title": "Concurrent Calls",
+                            "period": 60,
+                            "stat": "Maximum"
                         }
                     },
                     {
@@ -214,7 +203,7 @@ exports.handler = (event, context) => {
                             ],
                             "view": "singleValue",
                             "region": "ap-southeast-2",
-                            "period": 300,
+                            "period": 60,
                             "stat": "Sum",
                             "title": "Misconfigured Phone Numbers"
                         }
