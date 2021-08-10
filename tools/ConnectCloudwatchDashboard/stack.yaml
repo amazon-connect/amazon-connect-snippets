@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Connect API"
+Parameters:
+  S3BucketParameter:
+    Type: String
+    Description: "The S3 Bucket containing the lambda deployment package (.zip)"
+  S3KeyParameter:
+    Type: String
+    Description: "The key of the lambda deployment package in S3"
+  DashboardName:
+    Type: String
+    Description: "The name for the dashboard to create in Cloudwatch"
+  InstanceId:
+    Type: String
+    Description: "The ID of the Amazon Connect instance we want to create the dashboard for"
+Resources:
+  TheLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              Resource: arn:aws:logs:*:*:*
+        - PolicyName: "InlineS3Policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: s3:*
+                Resource: "*"
+        - PolicyName: "InlineConnectPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: connect:*
+                Resource: "*"
+        - PolicyName: "InlineCloudwatchPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                - cloudwatch:PutDashboard
+                - cloudwatch:DeleteDashboards
+                Resource: "*"
+  TheLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "Generates (to S3) the CloudFormation template to create Amazon Connect dashboard for instance."
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Role: !GetAtt "TheLambdaRole.Arn"
+      FunctionName: !Sub "amazonConnectDashboard_${DashboardName}"
+      Timeout: 12
+      Code:
+        S3Bucket:
+          Ref: S3BucketParameter
+        S3Key: 
+          Ref: S3KeyParameter
+  LambdaTrigger:
+    Type: AWS::CloudFormation::CustomResource
+    DependsOn: TheLambda
+    Version: "1.0"
+    Properties:
+      ServiceToken: !GetAtt TheLambda.Arn
+      InstanceId: !Ref InstanceId
+      DashboardName: !Ref DashboardName
+
