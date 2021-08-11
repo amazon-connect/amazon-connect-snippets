@@ -1,0 +1,198 @@
+{
+    "modules": [
+        {
+            "id": "42de2027-f05b-4010-bfbe-4820e502f337",
+            "type": "Resume",
+            "branches": [],
+            "parameters": [],
+            "metadata": {
+                "position": {
+                    "x": 1098,
+                    "y": 261
+                }
+            }
+        },
+        {
+            "id": "7fcfd37d-7ede-40dc-b705-f2945c026253",
+            "type": "InvokeExternalResource",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "4fa4b2b0-f75f-4f4b-be93-0f235c9cffc2"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "4fa4b2b0-f75f-4f4b-be93-0f235c9cffc2"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "FunctionArn",
+                    "value": "ConnectGenerateURLLambda",
+                    "namespace": null
+                },
+                {
+                    "name": "TimeLimit",
+                    "value": "8"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 486,
+                    "y": 311
+                },
+                "dynamicMetadata": {},
+                "useDynamic": false
+            },
+            "target": "Lambda"
+        },
+        {
+            "id": "012a341c-ab65-4fc0-80be-0de4d05e633e",
+            "type": "LoopPrompts",
+            "branches": [
+                {
+                    "condition": "Timeout",
+                    "transition": "60890c8e-4738-4e9c-a0bf-22d22cb362d2"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "60890c8e-4738-4e9c-a0bf-22d22cb362d2"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Text",
+                    "value": "welcome to queue",
+                    "key": "text"
+                },
+                {
+                    "name": "InterruptSeconds",
+                    "value": 1
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 211,
+                    "y": 56
+                },
+                "audio": [
+                    {
+                        "tts": "welcome to queue",
+                        "useTts": true,
+                        "ttsType": "text",
+                        "type": "Text"
+                    }
+                ],
+                "timeoutUnit": {
+                    "display": "Seconds",
+                    "value": "sec"
+                }
+            }
+        },
+        {
+            "id": "4fa4b2b0-f75f-4f4b-be93-0f235c9cffc2",
+            "type": "SetAttributes",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "aa2c2f32-46ad-4c2a-98c4-e07fbbd2466f"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "42de2027-f05b-4010-bfbe-4820e502f337"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Attribute",
+                    "value": "get_email_url",
+                    "key": "get_email_url",
+                    "namespace": "External"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 769,
+                    "y": 305
+                },
+                "isSplitModule": true
+            }
+        },
+        {
+            "id": "aa2c2f32-46ad-4c2a-98c4-e07fbbd2466f",
+            "type": "SetContactData",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "60890c8e-4738-4e9c-a0bf-22d22cb362d2"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "42de2027-f05b-4010-bfbe-4820e502f337"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "ContactData",
+                    "namespace": "External",
+                    "contactReference": {
+                        "key": "View Original Email",
+                        "value": "get_raw_email_url",
+                        "type": "URL"
+                    }
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 769,
+                    "y": 305
+                },
+                "isSplitModule": true
+            }
+        },
+        {
+            "id": "60890c8e-4738-4e9c-a0bf-22d22cb362d2",
+            "type": "Wait",
+            "branches": [
+                {
+                    "condition": "Timeout",
+                    "transition": "7fcfd37d-7ede-40dc-b705-f2945c026253"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "7fcfd37d-7ede-40dc-b705-f2945c026253"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "TimeoutSeconds",
+                    "namespace": "External",
+                    "value": "url_timeout"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 220,
+                    "y": 286
+                },
+                "useDynamic": true,
+                "timeoutUnit": null
+            }
+        }
+    ],
+    "version": "1",
+    "type": "customerQueue",
+    "start": "012a341c-ab65-4fc0-80be-0de4d05e633e",
+    "metadata": {
+        "entryPointPosition": {
+            "x": 20,
+            "y": 20
+        },
+        "snapToGrid": false,
+        "name": "email-CustomerQueue",
+        "description": null,
+        "type": "customerQueue",
+        "status": "published",
+        "hash": "fc36bca6e5b2d7d58cac62f5124db1353d6aba6868b3171327a10acd52fcf09a"
+    }
+}

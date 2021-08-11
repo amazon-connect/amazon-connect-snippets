@@ -1,0 +1,403 @@
+{
+    "modules": [
+        {
+            "id": "8281f809-73d3-4a73-ab26-79b804b887a7",
+            "type": "Disconnect",
+            "branches": [],
+            "parameters": [],
+            "metadata": {
+                "position": {
+                    "x": 1974,
+                    "y": 230
+                }
+            }
+        },
+        {
+            "id": "0e8766e9-2d29-4ec1-9a31-67282c90c62f",
+            "type": "SetQueue",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "b92e0b1f-c8ba-4afb-812f-afe8c36128af"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "a9b5ce7e-8858-426c-b74d-4dda5a69089b"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Queue",
+                    "value": "target_destination",
+                    "namespace": "User Defined",
+                    "resourceName": null
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 731,
+                    "y": 11
+                },
+                "useDynamic": true,
+                "queue": "target_destination"
+            }
+        },
+        {
+            "id": "00edce6c-5589-4a05-b2a9-857563421b6a",
+            "type": "SetQueue",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "b92e0b1f-c8ba-4afb-812f-afe8c36128af"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "a9b5ce7e-8858-426c-b74d-4dda5a69089b"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Agent",
+                    "value": "target_destination",
+                    "namespace": "User Defined",
+                    "resourceName": null
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 742,
+                    "y": 211
+                },
+                "useDynamic": true,
+                "queue": "target_destination"
+            }
+        },
+        {
+            "id": "a9b5ce7e-8858-426c-b74d-4dda5a69089b",
+            "type": "SetQueue",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "b92e0b1f-c8ba-4afb-812f-afe8c36128af"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "b92e0b1f-c8ba-4afb-812f-afe8c36128af"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Queue",
+                    "value": "",
+                    "namespace": null,
+                    "resourceName": "BasicQueue"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 1005,
+                    "y": 430
+                },
+                "useDynamic": false,
+                "queue": {
+                    "id": "",
+                    "text": "BasicQueue"
+                }
+            }
+        },
+        {
+            "id": "96609b23-54af-4b1a-9354-c4ad82eb440c",
+            "type": "Transfer",
+            "branches": [
+                {
+                    "condition": "AtCapacity",
+                    "transition": "8281f809-73d3-4a73-ab26-79b804b887a7"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "8281f809-73d3-4a73-ab26-79b804b887a7"
+                }
+            ],
+            "parameters": [],
+            "metadata": {
+                "position": {
+                    "x": 1729,
+                    "y": 167
+                },
+                "useDynamic": false,
+                "queue": null
+            },
+            "target": "Queue"
+        },
+        {
+            "id": "b92e0b1f-c8ba-4afb-812f-afe8c36128af",
+            "type": "InvokeExternalResource",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "9df71808-8ef4-459d-9148-70f7536a9973"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "9df71808-8ef4-459d-9148-70f7536a9973"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "FunctionArn",
+                    "value": "ConnectGenerateURLLambda",
+                    "namespace": null
+                },
+                {
+                    "name": "TimeLimit",
+                    "value": "8"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 1226,
+                    "y": 159
+                },
+                "dynamicMetadata": {},
+                "useDynamic": false
+            },
+            "target": "Lambda"
+        },
+        {
+            "id": "9df71808-8ef4-459d-9148-70f7536a9973",
+            "type": "SetAttributes",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "bd9f6248-236b-4eb8-8701-eed0ebd3bfe8"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "96609b23-54af-4b1a-9354-c4ad82eb440c"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Attribute",
+                    "value": "get_email_url",
+                    "key": "get_email_url",
+                    "namespace": "External"
+                },
+                {
+                    "name": "Attribute",
+                    "value": "url_timeout",
+                    "key": "url_timeout",
+                    "namespace": "External"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 1466,
+                    "y": 161.1999969482422
+                },
+                "isSplitModule": true
+            }
+        },
+        {
+            "id": "bd9f6248-236b-4eb8-8701-eed0ebd3bfe8",
+            "type": "SetContactData",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "96609b23-54af-4b1a-9354-c4ad82eb440c"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "96609b23-54af-4b1a-9354-c4ad82eb440c"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "ContactData",
+                    "namespace": "External",
+                    "contactReference": {
+                        "key": "View Original Email",
+                        "value": "get_raw_email_url",
+                        "type": "URL"
+                    }
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 1466,
+                    "y": 161.1999969482422
+                },
+                "isSplitModule": true
+            }
+        },
+        {
+            "id": "148f3f6d-2d61-495d-8487-b1435ad0096d",
+            "type": "SetLoggingBehavior",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "507758ff-27a2-4e8d-a813-84e159de0db6"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "LoggingBehavior",
+                    "value": "Enable"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 42,
+                    "y": 165
+                }
+            }
+        },
+        {
+            "id": "4ec94d19-211c-4fdb-bbf8-5dba70139191",
+            "type": "CheckAttribute",
+            "branches": [
+                {
+                    "condition": "Evaluate",
+                    "conditionType": "Equals",
+                    "conditionValue": "QUEUE",
+                    "transition": "0e8766e9-2d29-4ec1-9a31-67282c90c62f"
+                },
+                {
+                    "condition": "Evaluate",
+                    "conditionType": "Equals",
+                    "conditionValue": "AGENT",
+                    "transition": "00edce6c-5589-4a05-b2a9-857563421b6a"
+                },
+                {
+                    "condition": "NoMatch",
+                    "transition": "a9b5ce7e-8858-426c-b74d-4dda5a69089b"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Attribute",
+                    "value": "target_type"
+                },
+                {
+                    "name": "Namespace",
+                    "value": "User Defined"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 337,
+                    "y": 218
+                },
+                "conditionMetadata": [
+                    {
+                        "operator": {
+                            "name": "Equals",
+                            "value": "Equals",
+                            "shortDisplay": "="
+                        },
+                        "value": "QUEUE",
+                        "id": "7d34e419-db0f-442b-9a44-354fc4cc5813"
+                    },
+                    {
+                        "operator": {
+                            "name": "Equals",
+                            "value": "Equals",
+                            "shortDisplay": "="
+                        },
+                        "value": "AGENT",
+                        "id": "c5f1afce-5194-44a7-8bb6-151c6ba6e352"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "507758ff-27a2-4e8d-a813-84e159de0db6",
+            "type": "SetEventHook",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "ca894e16-8f34-4145-a86a-d39bb92969b9"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "ca894e16-8f34-4145-a86a-d39bb92969b9"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Type",
+                    "value": "AgentWhisper"
+                },
+                {
+                    "name": "ContactFlowId",
+                    "value": "",
+                    "resourceName": "task-AgentWhisper"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 43,
+                    "y": 344
+                },
+                "contactFlow": {
+                    "id": "",
+                    "text": "task-AgentWhisper"
+                },
+                "customerOrAgent": false,
+                "useDynamic": false
+            }
+        },
+        {
+            "id": "ca894e16-8f34-4145-a86a-d39bb92969b9",
+            "type": "SetEventHook",
+            "branches": [
+                {
+                    "condition": "Success",
+                    "transition": "4ec94d19-211c-4fdb-bbf8-5dba70139191"
+                },
+                {
+                    "condition": "Error",
+                    "transition": "4ec94d19-211c-4fdb-bbf8-5dba70139191"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Type",
+                    "value": "CustomerQueue"
+                },
+                {
+                    "name": "ContactFlowId",
+                    "value": "",
+                    "resourceName": "Task-QueueFlow"
+                }
+            ],
+            "metadata": {
+                "position": {
+                    "x": 37,
+                    "y": 560
+                },
+                "contactFlow": {
+                    "id": "",
+                    "text": "Task-QueueFlow"
+                },
+                "customerOrAgent": true,
+                "useDynamic": false
+            }
+        }
+    ],
+    "version": "1",
+    "type": "contactFlow",
+    "start": "148f3f6d-2d61-495d-8487-b1435ad0096d",
+    "metadata": {
+        "entryPointPosition": {
+            "x": 15,
+            "y": 20
+        },
+        "snapToGrid": false,
+        "name": "email-Inbound",
+        "description": null,
+        "type": "contactFlow",
+        "status": "published",
+        "hash": "fecab0735c59b3cbc2c7ab1d01ab27e122d2f75a4219bdff14f7205164ff76c0"
+    }
+}

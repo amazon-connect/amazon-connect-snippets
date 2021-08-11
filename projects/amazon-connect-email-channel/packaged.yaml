@@ -1,0 +1,199 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'blog-email-forwarder
+
+  SAM Template for blog-email-forwarder application
+
+  '
+Globals:
+  Function:
+    Timeout: 600
+Parameters:
+  GeneralInquiryEmailAddress:
+    Type: String
+    AllowedPattern: ^(.+)@(.+)$
+    Default: customerservice@dcatala.people.aws.dev
+    Description: The email address for your general information line where new contacts
+      will email.
+  InquiryEmailAddressDomain:
+    Type: String
+    AllowedPattern: '@(.+)$'
+    Default: '@dcatala.people.aws.dev'
+    Description: The domain with @ sign for your general information line where contacts
+      will email.
+  AmazonConnectInstanceArn:
+    Type: String
+    Default: arn:aws:connect:us-east-1:553382741890:instance/115a8403-a619-49ee-a556-c27d72399d56
+    Description: The ARN of your Amazon Connect Instance
+  AmazonConnectTaskContactFlowId:
+    Type: String
+    Default: arn:aws:connect:us-east-1:553382741890:instance/115a8403-a619-49ee-a556-c27d72399d56/contact-flow/76c12bf8-c52d-43d7-95f3-5cd96898c774
+    Description: The ARN of your Inbound Contact Flow that will handle the routing
+      of Tasks
+  EmailAccessTimeout:
+    Type: Number
+    Default: 1500
+    Description: The number of seconds an email can be accessed to be loaded onto
+      the screen.
+  EnableLanguageDetection:
+    Type: String
+    Default: 'TRUE'
+    Description: Enable primary language detection for incoming emails (TRUE/FALSE)
+  EnableSentimentDetection:
+    Type: String
+    Default: 'TRUE'
+    Description: Enable Sentiment Analysis for incoming emails (TRUE/FALSE).  Language
+      Detection must be set to TRUE for functionality.
+  EnableEntityRecognition:
+    Type: String
+    Default: 'TRUE'
+    Description: Enable Sentiment Analysis for incoming emails (TRUE/FALSE).  Language
+      Detection must be set to TRUE for functionality.
+  EmailDisclaimer:
+    Type: String
+    Default: This email will be recorded for quality purposes.
+    Description: Text that will be appended to all outgoing emails.
+Resources:
+  EmailGatewayFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://cdktoolkit-stagingbucket-7o46ntsitpe2/fd7610665b315cd576c4beb60eb77706
+      Handler: index.lambdaHandler
+      Runtime: nodejs14.x
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: EmailInteractionTable
+      - S3CrudPolicy:
+          BucketName:
+            Ref: InboxBucket
+      - ComprehendBasicAccessPolicy: {}
+      - Statement:
+        - Sid: OutboundCallerPolicy
+          Effect: Allow
+          Action:
+          - connect:StartTaskContact
+          Resource:
+            Ref: AmazonConnectTaskContactFlowId
+      Environment:
+        Variables:
+          GENERAL_INQUIRY_EMAIL_ADDRESS:
+            Ref: GeneralInquiryEmailAddress
+          INQUIRY_EMAIL_DOMAIN:
+            Ref: InquiryEmailAddressDomain
+          ENABLE_LANGUAGE_DETECTION:
+            Ref: EnableLanguageDetection
+          ENABLE_SENTIMENT_DETECTION:
+            Ref: EnableSentimentDetection
+          ENABLE_ENTITY_RECOGNITION:
+            Ref: EnableEntityRecognition
+          AMAZON_CONNECT_INSTANCE_ARN:
+            Ref: AmazonConnectInstanceArn
+          AMAZON_CONNECT_CONTACT_FLOW_ARN:
+            Ref: AmazonConnectTaskContactFlowId
+          EMAIL_LOOKUP_TABLE:
+            Ref: EmailInteractionTable
+  ConnectWhisperFlowLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://cdktoolkit-stagingbucket-7o46ntsitpe2/4d96b59350618d087e22839b4d422a2b
+      Runtime: python3.8
+      Handler: lambda_function.lambda_handler
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: EmailInteractionTable
+      - S3CrudPolicy:
+          BucketName:
+            Ref: InboxBucket
+      Environment:
+        Variables:
+          EMAIL_LOOKUP_TABLE:
+            Ref: EmailInteractionTable
+          EMAIL_ACCESS_TIMEOUT:
+            Ref: EmailAccessTimeout
+  ConnectGenerateURLLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://cdktoolkit-stagingbucket-7o46ntsitpe2/f4f9a4ee3d4c54209c1bcaf9a1e65708
+      Runtime: python3.8
+      Handler: lambda_function.lambda_handler
+      Policies:
+      - S3CrudPolicy:
+          BucketName:
+            Ref: InboxBucket
+      Environment:
+        Variables:
+          EMAIL_ACCESS_TIMEOUT:
+            Ref: EmailAccessTimeout
+  EmailRelayLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://cdktoolkit-stagingbucket-7o46ntsitpe2/11968231bb541f36afd60212d36d5985
+      Handler: index.lambdaHandler
+      Runtime: nodejs14.x
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: EmailInteractionTable
+      - S3CrudPolicy:
+          BucketName:
+            Ref: InboxBucket
+      - Statement:
+        - Sid: SESAccess
+          Effect: Allow
+          Action: ses:SendEmail
+          Resource: '*'
+      Environment:
+        Variables:
+          EMAIL_LOOKUP_TABLE:
+            Ref: EmailInteractionTable
+          EMAIL_DISCLAIMER:
+            Ref: EmailDisclaimer
+  EmailInteractionTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: interaction_id
+        Type: String
+  InboxBucket:
+    Type: AWS::S3::Bucket
+  InboxBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: InboxBucket
+      PolicyDocument:
+        Statement:
+        - Action:
+          - s3:PutObject
+          Effect: Allow
+          Resource:
+            Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: InboxBucket
+              - /*
+          Principal:
+            Service: ses.amazonaws.com
+          Condition:
+            StringLike:
+              aws:Referer:
+              - Ref: AWS::AccountId
+Outputs:
+  InboxBucket:
+    Description: Inbox Bucket ARN
+    Value:
+      Fn::GetAtt:
+      - InboxBucket
+      - Arn
+  GeneratePresignedUrlLambda:
+    Description: Lambda function for Inbound and Customer Queue Flows to generate
+      the presigned URLs to get emails.
+    Value:
+      Ref: ConnectGenerateURLLambda
+  WhisperFlowLambda:
+    Description: Lambda Function for the Agent Whisper Flow to capture agent routing
+      events
+    Value:
+      Ref: ConnectWhisperFlowLambda

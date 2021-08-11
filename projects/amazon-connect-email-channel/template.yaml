@@ -1,0 +1,169 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  blog-email-forwarder
+
+  SAM Template for blog-email-forwarder application
+  
+Globals:
+  Function:
+    Timeout: 600
+Parameters:
+  GeneralInquiryEmailAddress:
+    Type: String
+    AllowedPattern: '^(.+)@(.+)$'
+    Default: "customerservice@yourdomain.com"
+    Description: "The email address for your general information line where new contacts will email."
+  InquiryEmailAddressDomain:
+    Type: String
+    AllowedPattern: '@(.+)$'
+    Default: "@yourdomain.com"
+    Description: "The domain with @ sign for your general information line where contacts will email."
+  AmazonConnectInstanceArn:
+    Type: String
+    Default: "arn:aws:connect:us-east-1:111111111111:instance/11111111-1111-1111-1111-111111111111"
+    Description: "The ARN of your Amazon Connect Instance"
+  AmazonConnectTaskContactFlowId:
+    Type: String
+    Default: "arn:aws:connect:us-east-1:111111111111:instance/11111111-1111-1111-1111-111111111111/contact-flow/11111111-1111-1111-1111-111111111111"
+    Description: "The ARN of your Inbound Contact Flow that will handle the routing of Tasks"
+
+  EmailAccessTimeout:
+    Type: Number
+    Default: 1500
+    Description: "The number of seconds an email can be accessed to be loaded onto the screen."
+  EnableLanguageDetection:
+    Type: String
+    Default: "TRUE"
+    Description: "Enable primary language detection for incoming emails (TRUE/FALSE)"
+  EnableSentimentDetection:
+    Type: String
+    Default: "TRUE"
+    Description: "Enable Sentiment Analysis for incoming emails (TRUE/FALSE).  Language Detection must be set to TRUE for functionality."
+  EnableEntityRecognition:
+    Type: String
+    Default: "TRUE"
+    Description: "Enable Sentiment Analysis for incoming emails (TRUE/FALSE).  Language Detection must be set to TRUE for functionality." 
+    
+  EmailDisclaimer:
+    Type: String
+    Default: "This email will be recorded for quality purposes."
+    Description: "Text that will be appended to all outgoing emails."
+
+Resources:
+  EmailGatewayFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: email-gateway-lambda/
+      Handler: index.lambdaHandler
+      Runtime: nodejs14.x
+      Policies:
+        - DynamoDBCrudPolicy: 
+            TableName: !Ref EmailInteractionTable
+        - S3CrudPolicy:
+            BucketName: !Ref InboxBucket
+        - ComprehendBasicAccessPolicy: {}
+        - Statement:
+          - Sid: OutboundCallerPolicy
+            Effect: Allow
+            Action:
+              - 'connect:StartTaskContact'
+            Resource: !Ref AmazonConnectTaskContactFlowId
+      Environment:
+        Variables:
+          GENERAL_INQUIRY_EMAIL_ADDRESS: !Ref GeneralInquiryEmailAddress
+          INQUIRY_EMAIL_DOMAIN: !Ref InquiryEmailAddressDomain
+          ENABLE_LANGUAGE_DETECTION: !Ref EnableLanguageDetection
+          ENABLE_SENTIMENT_DETECTION: !Ref EnableSentimentDetection
+          ENABLE_ENTITY_RECOGNITION: !Ref EnableEntityRecognition
+          AMAZON_CONNECT_INSTANCE_ARN: !Ref AmazonConnectInstanceArn
+          AMAZON_CONNECT_CONTACT_FLOW_ARN: !Ref AmazonConnectTaskContactFlowId
+          EMAIL_LOOKUP_TABLE: !Ref EmailInteractionTable
+
+  ConnectWhisperFlowLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: connect-whisper-flow-lambda/
+      Runtime: python3.8
+      Handler: lambda_function.lambda_handler
+      Policies:
+        - DynamoDBCrudPolicy: 
+            TableName: !Ref EmailInteractionTable
+        - S3CrudPolicy:
+            BucketName: !Ref InboxBucket
+      Environment:
+        Variables:
+          EMAIL_LOOKUP_TABLE: !Ref EmailInteractionTable
+          EMAIL_ACCESS_TIMEOUT: !Ref EmailAccessTimeout
+  ConnectGenerateURLLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: connect-generate-url-lambda/
+      Runtime: python3.8
+      Handler: lambda_function.lambda_handler
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref InboxBucket
+      Environment:
+        Variables:
+          EMAIL_ACCESS_TIMEOUT: !Ref EmailAccessTimeout
+  EmailRelayLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: email-relay-lambda/
+      Handler: index.lambdaHandler
+      Runtime: nodejs14.x
+      Policies:
+        - DynamoDBCrudPolicy: 
+            TableName: !Ref EmailInteractionTable
+        - S3CrudPolicy:
+            BucketName: !Ref InboxBucket
+        - Statement:
+          - Sid: SESAccess
+            Effect: Allow
+            Action: 'ses:SendEmail'
+            Resource: '*'
+      Environment:
+        Variables:
+          EMAIL_LOOKUP_TABLE: !Ref EmailInteractionTable
+          EMAIL_DISCLAIMER: !Ref EmailDisclaimer
+  EmailInteractionTable:
+    Type: 'AWS::Serverless::SimpleTable'
+    Properties:
+        PrimaryKey:
+          Name: interaction_id
+          Type: String
+
+  InboxBucket:
+    Type: AWS::S3::Bucket
+
+  InboxBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref InboxBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 's3:PutObject'
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref InboxBucket
+                - /*
+            Principal:
+              Service: 'ses.amazonaws.com'
+            Condition:
+              StringLike:
+                'aws:Referer':
+                  - !Ref AWS::AccountId
+Outputs:
+  InboxBucket:
+    Description: "Inbox Bucket ARN"
+    Value: !GetAtt InboxBucket.Arn
+  GeneratePresignedUrlLambda:
+    Description: "Lambda function for Inbound and Customer Queue Flows to generate the presigned URLs to get emails."
+    Value: !Ref ConnectGenerateURLLambda
+  WhisperFlowLambda:
+    Description: "Lambda Function for the Agent Whisper Flow to capture agent routing events"
+    Value: !Ref ConnectWhisperFlowLambda
