@@ -126,7 +126,11 @@ class App extends Component<Props, State> {
         try {
             await Auth.signOut({ global: true });
         } catch (error) {
-            throw new Error(`signOut error: ${error.message}`);
+            if (error instanceof Error) {
+                throw new Error(`signOut error: ${error.message}`);
+            } else {
+                throw(error);
+            }
         } 
     }
 }
