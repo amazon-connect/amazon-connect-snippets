@@ -43,11 +43,13 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | LastAgentRouting | This project shows how to potentially implement last agent routing for customers using a voice channel.| [CloudFormation](projects/LastAgentRouting) |
 | RoutingFeatureRouting | This project shows how to capture a routing feature and use that to dynamically route a caller in a contact flow.| [CloudFormation](projects/RoutingFeatureRouting) |
 | LambdaAlias | This project shows how to provide access to an AWS Lambda function Alias from Amazon Connect.| [CloudFormation](projects/LambdaAlias) |
-| ContextRouting | This project demonstrates how you can use contact trace record processing, Lambda, and DynamoDB to track a callers progress through an IVR task, such as making a payment, and return them to that task should they be disonnected.| [CloudFormation](projects/ContextRouting) |
+| ContextRouting | This project demonstrates how you can use contact trace record processing, Lambda, and DynamoDB to track a callers progress through an IVR task, such as making a payment, and return them to that task should they be disconnected.| [CloudFormation](projects/ContextRouting) |
 | Rate Limiter | The rate limiter project utilizes AWS Lambda and Amazon DynamoDB dynamically to add rate limiting a caller to a Amazon Connect queue based on their phone number and/or IP address.| [CloudFormation](projects/RateLimiter) |
 | CCP Log Parser| A visualisation tool to visualise CCP logs to help troubleshoot client side errors | [link](tools/CCPLogParser) |
 | Connectivity Test Tool | This tool checks which web browser the agent is running, the network configuration from the client side and whether the microphone has required permissions. | [link](tools/CCPConnectivityTestTools) |
 | Dynamic Contact Center | This project demonstrates how you can use persistent session attributes to develop modular, repeatable and dynamic contact flows | [CloudFormation](projects/DynamicContactCenter)
+| Connect Cloudwatch Dashboard | This project automates the creation and deployment of a Cloudwatch Dashboard to monitor critical metrics for an Amazon Connect instance | [link](tools/ConnectCloudwatchDashboard/README.md)
+
 
 ## Contributions
 

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Auth, Hub } from 'aws-amplify';
-import Logger from './util/logger/logger'; 
+import Logger from './util/logger/logger';
 import OAuthButton from './components/OAuthButton/OAuthButton';
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import Ccp from './components/Ccp/Ccp';
@@ -36,32 +36,32 @@ class App extends Component<Props, State> {
         username: '',
         jwtToken: ''
     };
-    
+
     private readonly _ccpRef = React.createRef<Ccp>();
-  
+
     constructor(props: Props) {
         super(props);
         this._logger.debug(this._name + ': constructor');
-        
-        this.state = { 
+
+        this.state = {
             isLoaded: false,
             user: this._unauthenticatedUser
         };
     }
-    
+
     render() {
         this._logger.debug(this._name + ': render');
-        
-        let control =  <Text variant='p'>Loading...</Text>;
-        if (this.state.isLoaded){
-            if (this.state.user.isAuthenticated){
-                control = ( 
-                    <Container> 
+
+        let control = <Text variant='p'>Loading...</Text>;
+        if (this.state.isLoaded) {
+            if (this.state.user.isAuthenticated) {
+                control = (
+                    <Container>
                         <Stack>
-                            <Ccp ref={this._ccpRef} /> 
-                            <UserAttributes user={this.state.user} /> 
+                            <Ccp ref={this._ccpRef} />
+                            <UserAttributes user={this.state.user} />
                             <MockApi user={this.state.user} />
-                            <Button variant="primary" onClick={ async () => await this.signOut() }>Logout</Button>
+                            <Button variant="primary" onClick={async () => await this.signOut()}>Logout</Button>
                         </Stack>
                     </Container>
                 );
@@ -69,21 +69,21 @@ class App extends Component<Props, State> {
                 control = <OAuthButton />;
             }
         }
-        
+
         return (
-            <div className="App"> 
-                <ErrorBoundary> 
+            <div className="App">
+                <ErrorBoundary>
                     <NorthStarThemeProvider>
-                        {control} 
+                        {control}
                     </NorthStarThemeProvider>
                 </ErrorBoundary>
             </div>
         );
     }
-    
+
     async componentDidMount() {
         this._logger.debug(this._name + ': componentDidMount');
-        
+
         let myCognitoUser = this._unauthenticatedUser;
         try {
             const user = await Auth.currentAuthenticatedUser();
@@ -95,43 +95,43 @@ class App extends Component<Props, State> {
         } catch {
             // currentAuthenticatedUser throws an Error if not signed in so do nothing since myCognitoUser is already set
         } finally {
-            this.setState({ 
+            this.setState({
                 isLoaded: true,
                 user: myCognitoUser
             });
         }
-        
+
         Hub.listen("auth", async (data) => {
             this._logger.debug(this._name + `: Auth listen ${data.payload.event}`);
-            
+
             switch (data.payload.event) {
                 case "oAuthSignOut":
-                    if (this._ccpRef.current){
+                    if (this._ccpRef.current) {
                         // Finished Signing out of main app so let's logout of the Ccp 
                         await this._ccpRef.current.logout();
                     } else {
-                        throw new Error ('_ccpRef is null.  This should never happen');
+                        throw new Error('_ccpRef is null.  This should never happen');
                     }
                     break;
                 default:
-                    //Do nothing
-                }
+                //Do nothing
             }
+        }
         );
     }
-    
+
     signOut = async () => {
         this._logger.debug(this._name + ': signOut');
-        
+
         try {
             await Auth.signOut({ global: true });
         } catch (error) {
             if (error instanceof Error) {
                 throw new Error(`signOut error: ${error.message}`);
             } else {
-                throw(error);
+                throw (error);
             }
-        } 
+        }
     }
 }
 
