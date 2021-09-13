@@ -1,3 +1,4 @@
+
 Amazon Connect Regex
 
 
@@ -36,7 +37,7 @@ For example, if you include a \d in your regular expression to match a digit cha
     "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\/queue\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
 
 #Prompt
-    "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\\/prompt\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+    "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\/prompt\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
 
 #Agent
     AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\/agent\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
