@@ -1,10 +1,12 @@
 const aws = require('aws-sdk');
 const axios = require('axios');
+// upload lambda layer to use the libraries above. See blog for detailed instructions on creating a layer
 
 const s3 = new aws.S3({ apiVersion: '2006-03-01' });
-const wisdom = new aws.Wisdom({ endpoint: 'https://wisdom.us-west-2.gamma.internal.clover.aws.dev' });
+const wisdom = new aws.Wisdom({});
 
 const knowledgeBaseId = process.env.KNOWLEDGE_BASE_ID;
+// remember to create an environment variable
 
 // function to upload content
 async function upload(s3Object) {
