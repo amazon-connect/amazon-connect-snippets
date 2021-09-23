@@ -1,11 +1,12 @@
-const axios = require('axios');
 const aws = require('aws-sdk');
+const axios = require('axios');
 
 const s3 = new aws.S3({ apiVersion: '2006-03-01' });
 const wisdom = new aws.Wisdom({ endpoint: 'https://wisdom.us-west-2.gamma.internal.clover.aws.dev' });
 
-const knowledgeBaseId = '4120bf35-7dc4-46dd-b58c-21774a2ba6a9';
+const knowledgeBaseId = process.env.KNOWLEDGE_BASE_ID;
 
+// function to upload content
 async function upload(s3Object) {
     const uploadDetails = await wisdom.startContentUpload({
         knowledgeBaseId: knowledgeBaseId,
@@ -27,7 +28,6 @@ exports.handler = async (event, context) => {
     const version = event.Records[0].s3.object.versionId;
 
     // check to see if content with this key as its name already exists in Wisdom
-
     const searchResponse = await wisdom.searchContent({
         knowledgeBaseId: knowledgeBaseId,
         searchExpression: {
@@ -40,14 +40,13 @@ exports.handler = async (event, context) => {
     }).promise();
     const existingContent = searchResponse.contentSummaries[0];
 
+    // S3 event type is delete
     if (event.Records[0].eventName.startsWith('ObjectRemoved')) {
         if (!existingContent) {
-            console.log('received delete event for nonexistent content; nothing to do');
             return;
         }
 
-        console.log('deleting content');
-
+        // delete content
         await wisdom.deleteContent({
             knowledgeBaseId: knowledgeBaseId,
             contentId: existingContent.contentId
@@ -62,14 +61,15 @@ exports.handler = async (event, context) => {
     }).promise();
 
     let content;
+
+    // check to see if file already exists
     if (existingContent) {
-        console.log('content already exists');
+        // check if existing content matches S3 version from event body. If so, it is the same file and there is nothing to do
         if (existingContent.metadata['sourceS3Version'] === version) {
-            console.log('S3 version and Wisdom version match; nothing to do');
             return;
         }
 
-        console.log('calling update')
+        // update case
         content = await wisdom.updateContent({
             knowledgeBaseId: knowledgeBaseId,
             contentId: existingContent.contentId,
@@ -80,7 +80,7 @@ exports.handler = async (event, context) => {
             }
         }).promise();
     } else {
-        console.log('content does not yet exist; calling create')
+        // create case
         content = await wisdom.createContent({
             knowledgeBaseId: knowledgeBaseId,
             name: key,
