@@ -1,0 +1,20 @@
+!jest.config.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# Local template file
+template.yaml
+
+# CDK context - auto-generated
+cdk.context.json
+
+#build folder
+build
+
+#compiled typescript to js
+bin/*.js
+lib/*.js
