@@ -13,6 +13,9 @@ Parameters:
   InstanceId:
     Type: String
     Description: "The ID of the Amazon Connect instance we want to create the dashboard for"
+  Region:
+    Type: String
+    Description: "The AWS region where the instance is provisioned"
 Resources:
   TheLambdaRole:
     Type: AWS::IAM::Role
@@ -82,4 +85,5 @@ Resources:
       ServiceToken: !GetAtt TheLambda.Arn
       InstanceId: !Ref InstanceId
       DashboardName: !Ref DashboardName
+      Region: !Ref Region
 
