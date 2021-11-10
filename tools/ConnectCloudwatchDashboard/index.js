@@ -7,7 +7,8 @@ exports.handler = (event, context) => {
     let connectInstanceId = event['ResourceProperties']['InstanceId'];
     let region = event['ResourceProperties']['Region'];
 
-    let queuesFormation = [];
+    let queuesTimeFormation = [];
+    let queuesSizeFormation = [];
     let flowsErrorsFormation = [];
     let flowsFatalErrorsFormation = [];
 
@@ -40,7 +41,8 @@ exports.handler = (event, context) => {
         let res = Promise.all([betterGetQueuesInInstance(), betterGetContactFlowsInInstance()])
             .then(([queues, flows]) => {
 
-                queuesFormation = formatQueuesForTemplate(queues);
+                queuesTimeFormation = formatQueuesLongestTimeForTemplate(queues);
+                queuesSizeFormation = formatQueuesSizeForTemplate(queues);
                 flowsErrorsFormation = formatFlowsForErrorTemplate(flows);
                 flowsFatalErrorsFormation = formatFlowsForFatalTemplate(flows);
 
@@ -149,7 +151,7 @@ exports.handler = (event, context) => {
                         "x": 6,
                         "type": "metric",
                         "properties": {
-                            "metrics": queuesFormation,
+                            "metrics": queuesTimeFormation,
                             "view": "singleValue",
                             "period": 60,
                             "stat": "Maximum",
@@ -158,13 +160,18 @@ exports.handler = (event, context) => {
                         }
                     },
                     {
+                        "height": 3,
+                        "width": 12,
+                        "y": 9,
+                        "x": 6,
                         "type": "metric",
                         "properties": {
-                            "view": "timeSeries",
+                            "view": "singleValue",
                             "stacked": false,
-                            "metrics": queuesFormation,
+                            "metrics": queuesSizeFormation,
                             "period": 60,
                             "title": "Queue Size",
+                            "stat": "Maximum",
                             "region": `${region}`,
                         }
                     },
@@ -410,11 +417,22 @@ exports.handler = (event, context) => {
      * @param {*} queuesData 
      * @returns 
      */
-    function formatQueuesForTemplate(queuesData) {
+    function formatQueuesLongestTimeForTemplate(queuesData) {
         let templatedQueues = [];
 
         queuesData.forEach(queue => {
             let queueTemplate = ["AWS/Connect", "LongestQueueWaitTime", "InstanceId", connectInstanceId, "MetricGroup", "Queue", "QueueName", queue.Name];
+            templatedQueues.push(queueTemplate);
+        });
+
+        return templatedQueues;
+    }
+
+    function formatQueuesSizeForTemplate(queuesData) {
+        let templatedQueues = [];
+
+        queuesData.forEach(queue => {
+            let queueTemplate = ["AWS/Connect", "QueueSize", "InstanceId", connectInstanceId, "MetricGroup", "Queue", "QueueName", queue.Name];
             templatedQueues.push(queueTemplate);
         });
 
