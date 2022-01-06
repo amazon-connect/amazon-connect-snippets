@@ -12,6 +12,9 @@ For example, if you include a \d in your regular expression to match a digit cha
 #Contact Flow
     AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\\/contact-flow\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
 
+#Flow Module
+    AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\\/flow-module\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+
 #Queue
     AllowedPattern: "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\\/queue\\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
 
@@ -32,6 +35,9 @@ For example, if you include a \d in your regular expression to match a digit cha
 
 #Contact Flow
     "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\/contact-flow\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
+
+#Flow Module
+    "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\/flow-module\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
 
 #Queue
     "^arn:aws:connect:[a-zA-Z0-9_.-]+:[0-9]{12}:+instance\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}\/queue\/([0-9a-f]){8}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){4}-([0-9a-f]){12}$"
