@@ -2,13 +2,17 @@
 Securely identifying customers during an inbound call can be a legal requirement for many contact centers, especially in the financial industry. BankID is by far the largest electronic identification system in Sweden, with a current usage rate of 94% among smartphone users. With BankID, you get a stable and secure solution that the vast majority of your customers already use and trust.
 With Amazon Connect, you can build high-quality omnichannel voice and interactive chat experiences to support your customers from anywhere.
 
-This demo will set up a contact flow/IVR for real time authentication with Mobile BankID and can be deployed in minutes.
+This code will set up a contact flow/IVR for real time authentication with Mobile BankID and can be deployed in minutes.
+
+![contact flow](images/contact-flow.png)
 
 Important: this application uses various AWS services and there are costs associated with these services after the Free Tier usage - please see the [AWS Pricing page](https://aws.amazon.com/pricing/) for details. You are responsible for any AWS costs incurred. No warranty is implied in this example.
 
 ### Services used
 * [Amazon Connect](https://aws.amazon.com/connect/)
 * [AWS Lambda](https://aws.amazon.com/connect/)
+
+![architecture](images/architecture.png)
 
 ### Requirements for deployment
 * An [Amazon account](https://aws.amazon.com/console/)
