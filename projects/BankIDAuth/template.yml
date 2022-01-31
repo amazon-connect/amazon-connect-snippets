@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Demo BankID Integration with Amazon Connect
+Parameters:
+  ConnectArn:
+    Type: String
+    Description: The Arn for your existing connect instance. This instance can be in any region.
+
+Globals:
+  Function:
+    Timeout: 8
+
+Resources:
+  #### BankID Authenticator ####
+  BankIDAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: bankid-auth
+      Description: Triggers a BankID authentication order and polls for status.
+      CodeUri: ./code/bankid-auth/
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.9
+
+  BankIDAuthPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt BankIDAuthFunction.Arn
+      Principal: connect.amazonaws.com
+      SourceArn: !Ref ConnectArn
+
+Outputs:
+  BankIDAuthArn:
+    Description: The Arn of the Lambda Function BankIDAuth
+    Value: !GetAtt BankIDAuthFunction.Arn
