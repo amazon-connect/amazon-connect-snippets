@@ -25,11 +25,19 @@ def lambda_handler(event, context):
     logger.info('Creating contact flow.')
     logger.info({ 'event': event })
     
+    queue_arn = fetch_sample_basic_queue_arn()
     template = load_content(CONTACT_FLOW)
-    content = update_content(template)
+    content = update_content(template, queue_arn)
     
     try:
-        resp_data = create_contact_flow(content)
+        # Gracefully handle re-deployments
+        contact_flow = fetch_contact_flow()
+        if contact_flow:
+            # Contact Flow was already created
+            resp_data = update_contact_flow(content, contact_flow)
+        else:
+            # Contact Flow does not exist
+            resp_data = create_contact_flow(content)
 
         logger.debug({ 'responseData': resp_data })
         cfnresponse.send(event, context, cfnresponse.SUCCESS, resp_data)
@@ -55,6 +63,18 @@ def create_contact_flow(content):
         'Arn': resp['ContactFlowArn']
     }
 
+def update_contact_flow(content, contact_flow):
+    resp = client.update_contact_flow_content(
+        InstanceId=INSTANCE_ID,
+        ContactFlowId=contact_flow['Id'],
+        Content=content
+    )
+
+    logger.info('Contact Flow updated.')
+    return {
+        'Arn': contact_flow['Arn']
+    }
+
 def load_content(fn):
     # Loads contact flow content from json file
     logger.info('Loading content from {}'.format(fn))
@@ -65,6 +85,41 @@ def load_content(fn):
     return content
 
 
+def fetch_sample_basic_queue_arn():
+    # All Amazon Connect instances have a Sample Basic Queue
+    # This function collects the Arn for the Sample Basic Queue
+    # Which will be used in the contact flow to connect the caller
+    # to an agent.
+    logger.info('Fetching Sample Basic Queue Arn')
+    response = client.list_queues(
+        InstanceId=INSTANCE_ID,
+        QueueTypes=['STANDARD']
+    )
+
+    logger.debug({ 'response': response })
+    for i in response['QueueSummaryList']:
+        if i['Name'] == 'Sample BasicQueue':
+            logger.info({ 'Arn': i['Arn'] })
+            return i['Arn']
+
+
+def fetch_contact_flow():
+    # Gracefully handle duplication errors during re-deployment
+    # This function collects the info for the Contact Flow
+    # So that the contact flow can be updated instead of created
+    logger.info('Fetching Contact Flow ID')
+    response = client.list_contact_flows(
+        InstanceId=INSTANCE_ID,
+        ContactFlowTypes=['CONTACT_FLOW']
+    )
+
+    logger.debug({ 'response': response })
+    for i in response['ContactFlowSummaryList']:
+        if i['Name'] == CONTACT_FLOW_NAME:
+            logger.info({ 'ContactFlow': i })
+            return i
+
+
 def update_content(content, queue_arn):
     # The contact flow was pre-generated which provided the identifiers.
     # The identifiers used below are fixed in the contact flow configuration
@@ -72,10 +127,18 @@ def update_content(content, queue_arn):
     # to the Amazon account that the solution will be deployed to.
 
     logger.info('Updating content with account specific Arns.')
+    # This identifier relates to metadata of a block that sets the working queue
+    content['Metadata']['ActionMetadata']['bb212c4b-3f98-4080-b533-fe9d2ca36b70']['queue']['id'] = queue_arn
 
     for i in content['Actions']:
         # This identifier relates to the block that invokes a new lambda function
         if i['Identifier'] == '2367a288-95db-4535-ad4f-7d70be3636a9':
             logger.info('Identified block and replacing Lambda ARN.')
             i['Parameters']['LambdaFunctionARN'] = AUTH_ARN
-            return json.dumps(content)
+
+        # This identifier relates to a block that sets the working queue
+        elif i['Identifier'] == 'bb212c4b-3f98-4080-b533-fe9d2ca36b70':
+            logger.info('Identified block and replacing queue ARN.')
+            i['Parameters']['QueueId'] = queue_arn
+
+    return json.dumps(content)

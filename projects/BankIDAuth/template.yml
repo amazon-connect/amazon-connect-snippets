@@ -62,7 +62,17 @@ Resources:
           INSTANCE_ID: !Select [1, !Split ["/", !Ref ConnectArn]]
           CONNECT_REGION: !Select [3, !Split [":", !Ref ConnectArn]]
 
+  ContactFlowDeployment:
+    Type: Custom::ContactFlowDeployment
+    Properties:
+      ServiceToken: !GetAtt DeployContactFlowFunction.Arn
+    DeletionPolicy: Retain
+
 Outputs:
   BankIDAuthArn:
     Description: The Arn of the Lambda Function BankIDAuth
     Value: !GetAtt BankIDAuthFunction.Arn
+
+  ContactFlow:
+    Description: Response from the custom resource contact flow deployment
+    Value: !GetAtt ContactFlowDeployment.Arn
