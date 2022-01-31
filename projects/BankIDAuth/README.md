@@ -83,6 +83,3 @@ You will be asked:
 ## Delete the stack via the SAM CLI
 sam delete
 ```
-
-## License
-This library is licensed under the MIT-0 License. See the LICENSE file.
