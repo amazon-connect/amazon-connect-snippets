@@ -23,7 +23,7 @@ Important: this application uses various AWS services and there are costs associ
 1. Order a personal code for the test server at [demo.bankid.com](https://demo.bankid.com/).
 1. Login with code from the email.
 1. Follow instructions at [demo.bankid.com](https://demo.bankid.com/) to issue your BankID for testing.
-1. Review the latest [BankID Relying Party Guidelines](https://www.bankid.com/assets/bankid/rp/bankid-relying-party-guidelines-v3.5.pdf) to review the latest SSL Certificate information and passcode or to request custom production certificates.
+1. Review the latest [BankID Relying Party Guidelines](https://www.bankid.com/assets/bankid/rp/bankid-relying-party-guidelines-v3.6.pdf) to review the latest SSL Certificate information and passcode or to request custom production certificates.
 1. _(optional)_ To update the certificates for your backend code you can find the latest download link in the [testing documentation](https://www.bankid.com/en/utvecklare/test).
 
 _For more information on BankID integration, please review their documentation [here](https://www.bankid.com/en/utvecklare/guider)._
