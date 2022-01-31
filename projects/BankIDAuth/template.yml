@@ -29,6 +29,39 @@ Resources:
       Principal: connect.amazonaws.com
       SourceArn: !Ref ConnectArn
 
+  #### Deploy Contact Flow ####
+  DeployContactFlowFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: deploy-contact-flow
+      Description: Custom resource step to deploy contact flow to Amazon Connect instance
+      CodeUri: ./code/deploy-contact-flow/
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.9
+      Policies:
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                - connect:ListQueues
+                - connect:ListContactFlows
+                - connect:CreateContactFlow
+                - connect:UpdateContactFlowContent
+              Resource: !Sub "${ConnectArn}/*"
+      Environment:
+        Variables:
+          AUTH_ARN: !GetAtt BankIDAuthFunction.Arn
+          INSTANCE_ID: !Select [1, !Split ["/", !Ref ConnectArn]]
+          CONNECT_REGION: !Select [3, !Split [":", !Ref ConnectArn]]
+
 Outputs:
   BankIDAuthArn:
     Description: The Arn of the Lambda Function BankIDAuth
