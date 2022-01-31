@@ -1,7 +1,7 @@
 import os
 import json
-import boto3
 import logging
+import boto3
 import cfnresponse
 
 from botocore.exceptions import ClientError
@@ -24,11 +24,11 @@ client = boto3.client('connect', region_name=CONNECT_REGION)
 def lambda_handler(event, context):
     logger.info('Creating contact flow.')
     logger.info({ 'event': event })
-    
+
     queue_arn = fetch_sample_basic_queue_arn()
     template = load_content(CONTACT_FLOW)
     content = update_content(template, queue_arn)
-    
+
     try:
         # Gracefully handle re-deployments
         contact_flow = fetch_contact_flow()
@@ -42,7 +42,6 @@ def lambda_handler(event, context):
         logger.debug({ 'responseData': resp_data })
         cfnresponse.send(event, context, cfnresponse.SUCCESS, resp_data)
 
-        
     except ClientError as e:
         error = e.response['Error']
         logger.error({ 'Error': error })
@@ -64,7 +63,7 @@ def create_contact_flow(content):
     }
 
 def update_contact_flow(content, contact_flow):
-    resp = client.update_contact_flow_content(
+    client.update_contact_flow_content(
         InstanceId=INSTANCE_ID,
         ContactFlowId=contact_flow['Id'],
         Content=content
@@ -77,10 +76,10 @@ def update_contact_flow(content, contact_flow):
 
 def load_content(fn):
     # Loads contact flow content from json file
-    logger.info('Loading content from {}'.format(fn))
-    with open(fn) as f:
+    logger.info('Loading content from %s', fn)
+    with open(fn, encoding='utf-8') as f:
         content = json.load(f)
-    
+
     logger.debug({ 'content': content })
     return content
 
@@ -128,7 +127,8 @@ def update_content(content, queue_arn):
 
     logger.info('Updating content with account specific Arns.')
     # This identifier relates to metadata of a block that sets the working queue
-    content['Metadata']['ActionMetadata']['bb212c4b-3f98-4080-b533-fe9d2ca36b70']['queue']['id'] = queue_arn
+    queue = content['Metadata']['ActionMetadata']['bb212c4b-3f98-4080-b533-fe9d2ca36b70']
+    queue['queue']['id'] = queue_arn
 
     for i in content['Actions']:
         # This identifier relates to the block that invokes a new lambda function

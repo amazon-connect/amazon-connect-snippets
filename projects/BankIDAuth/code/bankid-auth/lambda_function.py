@@ -29,6 +29,7 @@ def lambda_handler(event, context):
         )
 
         # This order reference is used for repeat invocations of this function
+        logger.debug({ 'auth_response': auth })
         order_ref = auth['orderRef']
         logger.info({ 'order_ref': order_ref })
 
@@ -39,9 +40,9 @@ def lambda_handler(event, context):
     # The number of loops before terminiating the call is dependant on
     # the contact flow configuration.
     logger.info('Looping: checking status of authentication order.')
-    for i in range(0, 6):
+    for _ in range(6):
         status = status_collect(order_ref)
-        logger.debug(status)
+        logger.debug({ 'status': status })
 
         if status['status'] == 'complete':
             logger.info('Status is complete.')

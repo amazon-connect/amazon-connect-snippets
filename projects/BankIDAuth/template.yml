@@ -20,6 +20,7 @@ Resources:
       CodeUri: ./code/bankid-auth/
       Handler: lambda_function.lambda_handler
       Runtime: python3.9
+      ReservedConcurrentExecutions: 3
 
   BankIDAuthPermission:
     Type: AWS::Lambda::Permission
@@ -38,15 +39,8 @@ Resources:
       CodeUri: ./code/deploy-contact-flow/
       Handler: lambda_function.lambda_handler
       Runtime: python3.9
+      ReservedConcurrentExecutions: 1
       Policies:
-        - Version: 2012-10-17
-          Statement:
-            - Effect: Allow
-              Action:
-                - logs:CreateLogGroup
-                - logs:CreateLogStream
-                - logs:PutLogEvents
-              Resource: "*"
         - Version: 2012-10-17
           Statement:
             - Effect: Allow
