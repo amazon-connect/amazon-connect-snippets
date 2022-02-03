@@ -90,16 +90,18 @@ def fetch_sample_basic_queue_arn():
     # Which will be used in the contact flow to connect the caller
     # to an agent.
     logger.info('Fetching Sample Basic Queue Arn')
-    response = client.list_queues(
+    paginator = client.get_paginator('list_queues')
+    response_iterator = paginator.paginate(
         InstanceId=INSTANCE_ID,
         QueueTypes=['STANDARD']
     )
 
-    logger.debug({ 'response': response })
-    for i in response['QueueSummaryList']:
-        if i['Name'] == 'Sample BasicQueue':
-            logger.info({ 'Arn': i['Arn'] })
-            return i['Arn']
+    for resp in response_iterator:
+        logger.debug({ 'response': resp })
+        for i in resp['QueueSummaryList']:
+            if i['Name'] == 'Sample BasicQueue':
+                logger.info({ 'Arn': i['Arn'] })
+                return i['Arn']
 
 
 def fetch_contact_flow():
@@ -107,16 +109,18 @@ def fetch_contact_flow():
     # This function collects the info for the Contact Flow
     # So that the contact flow can be updated instead of created
     logger.info('Fetching Contact Flow ID')
-    response = client.list_contact_flows(
+    paginator = client.get_paginator('list_contact_flows')
+    response_iterator = paginator.paginate(
         InstanceId=INSTANCE_ID,
         ContactFlowTypes=['CONTACT_FLOW']
     )
 
-    logger.debug({ 'response': response })
-    for i in response['ContactFlowSummaryList']:
-        if i['Name'] == CONTACT_FLOW_NAME:
-            logger.info({ 'ContactFlow': i })
-            return i
+    for resp in response_iterator:
+        logger.debug({ 'response': resp })
+        for i in resp['ContactFlowSummaryList']:
+            if i['Name'] == CONTACT_FLOW_NAME:
+                logger.info({ 'ContactFlow': i })
+                return i
 
 
 def update_content(content, queue_arn):
