@@ -1,3 +1,4 @@
+eiifccuhdiggkigvlbbrfkdffgnhlilutijnbfehniiu
 # Amazon Connect with BankID authentication
 Securely identifying customers during an inbound call can be a legal requirement for many contact centers, especially in the financial industry. BankID is by far the largest electronic identification system in Sweden, with a current usage rate of 94% among smartphone users. With BankID, you get a stable and secure solution that the vast majority of your customers already use and trust.
 With Amazon Connect, you can build high-quality omnichannel voice and interactive chat experiences to support your customers from anywhere.
@@ -44,6 +45,10 @@ In the terminal, use the SAM CLI guided deployment the first time you deploy.
 sam build
 sam deploy --guided
 ```
+
+Before testing, you will need to configure the new contact flow/IVR to your claimed phone number. If you need to claim a new phone number follow these [instructions](https://docs.aws.amazon.com/connect/latest/adminguide/claim-phone-number.html). You can then associate your new `0000 BankID Authentication` to your claimed number by following these [instructions](https://docs.aws.amazon.com/connect/latest/adminguide/associate-phone-number.html).
+Now your new contact flow is ready to try out!
+
 
 #### Choose options
 You can choose the default options, however remember to pass in the Arn for your Amazon Connect instance or the deployment will not be sucessful.
