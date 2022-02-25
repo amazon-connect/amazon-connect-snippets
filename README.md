@@ -32,6 +32,7 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Custom Agent Desktop with Azure SSO Integration | How to launch a custom Amazon Connect Agent Desktop from Microsoft 365 Application Launcher | [Javascript](javascript/customAgentDesktop-AzureSSO)
 | Amazon Connect Reg-Ex Patterns | For use in Cloudformation templates | [Tools](tools/)|
 | Amazon Connect Draw.io Objects | Contact flow blocks that can be imported into Draw.io | [Tools](tools/)|
+| Check Time Left | This snippet helps make a routing decision whether to add a new contact to the queue or take another action (like terminating the call) based on the queue length and the business hours for that day. | [Python](python/CheckTimeLeft/) |
 
 ## Projects
 
@@ -50,7 +51,7 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | CCP Log Parser| A visualisation tool to visualise CCP logs to help troubleshoot client side errors | [link](tools/CCPLogParser) |
 | Connectivity Test Tool | This tool checks which web browser the agent is running, the network configuration from the client side and whether the microphone has required permissions. | [link](tools/CCPConnectivityTestTools) |
 | Dynamic Contact Center | This project demonstrates how you can use persistent session attributes to develop modular, repeatable and dynamic contact flows | [CloudFormation](projects/DynamicContactCenter)
-| Connect Cloudwatch Dashboard | This project automates the creation and deployment of a Cloudwatch Dashboard to monitor critical metrics for an Amazon Connect instance | [link](tools/ConnectCloudwatchDashboard/README.md)
+| Connect Cloudwatch Dashboard | This project automates the creation and deployment of a Cloudwatch Dashboard to monitor critical metrics for an Amazon Connect instance | [link](tools/ConnectCloudwatchDashboard/README.md)  
 
 
 ## Contributions
