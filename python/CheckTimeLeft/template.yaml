@@ -1,0 +1,120 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  This template deploys resources that helps make a routing decision whether to add a new contact to the queue or take another action (like terminating the call) based on the queue length and the business hours for that day.
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 120
+
+Parameters:
+  BusinessHoursTable:  # Database table that hosts the configuration
+    Type: String
+    Default: QueueHours
+    Description: Enter a name for a database table that will host the configuration
+  ConnectInstanceID: # Amazon Connect Instance
+    Type: String
+    Default: CONNECT_INSTANCE_ID
+    Description: Enter the Amazon Connect InstanceID
+  UpdateRate:  #Rate to refresh the configuration from the Amazon Connect Instance
+    Type: String
+    Default: rate(1 hour)
+    Description: Enter the configuration refresh rate, default is 1 hour
+
+Resources:
+  GetTimeLeftFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: getTimeLeft/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Timeout: 7
+      Environment:
+        Variables:
+          business_hours_table_name: !Ref BusinessHoursTable
+      Policies:
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource:
+                'Fn::Join':
+                  - ''
+                  - - 'arn:aws:dynamodb:'
+                    - Ref: AWS::Region
+                    - ':'
+                    - Ref: AWS::AccountId
+                    - ':table/'
+                    - Ref: DynamoDBTable
+
+  UpdateQueueHoursFunction:
+   Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+   Properties:
+    CodeUri: updateQueueHours/
+    Handler: app.lambda_handler
+    Runtime: python3.9
+    Environment:
+      Variables:
+        business_hours_table_name: !Ref BusinessHoursTable
+        connect_instance_id: !Ref ConnectInstanceID
+    Events:
+      UpdateQueueHoursRate:
+        Type: Schedule
+        Properties:
+          Schedule: !Ref UpdateRate
+
+    Policies:
+      - Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+            Resource:
+              'Fn::Join':
+                - ''
+                - - 'arn:aws:dynamodb:'
+                  - Ref: AWS::Region
+                  - ':'
+                  - Ref: AWS::AccountId
+                  - ':table/'
+                  - Ref: DynamoDBTable
+          - Effect: Allow
+            Action:
+              - connect:DescribeQueue
+              - connect:ListQueues
+              - connect:DescribeHoursOfOperation
+            Resource:
+              'Fn::Join':
+                - ''
+                - - 'arn:aws:connect:'
+                  - Ref: AWS::Region
+                  - ':'
+                  - Ref: AWS::AccountId
+                  - ':instance/'
+                  - Ref: ConnectInstanceID
+                  - '/*'
+
+  DynamoDBTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: !Ref BusinessHoursTable
+      PrimaryKey:
+        Name: QueueID
+        Type: String
+
+
+Outputs:
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  GetTimeLeftFunction:
+    Description: "GetTimeLeft Function ARN"
+    Value: !GetAtt  GetTimeLeftFunction.Arn
+  UpdateQueueHoursFunction:
+    Description: "UpdateQueueHours Function ARN"
+    Value: !GetAtt UpdateQueueHoursFunction.Arn
+  DynamoDBTable:
+    Description: "DynamoDB Table ARN"
+    Value: !GetAtt DynamoDBTable.Arn

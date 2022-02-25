@@ -18,3 +18,4 @@ Icon
 **/.vscode
 *.code-workspace
 **/.idea
+**/samconfig.toml
