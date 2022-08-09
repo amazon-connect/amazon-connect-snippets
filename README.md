@@ -29,7 +29,6 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Remote Control Center | Centrally manage prompts and routing configurations in DynamoDB | [Python](python/remote-control-center) |
 | Contact Flow Helper | A single AWS Lambda function which provides a set of basic math and text tools to help manipulate data in contact flows | [Python](python/contactflowhelper)|
 | Create Tasks Programmatically | CloudFormation template to enable you to programmatically create an Amazon Connect Task | [Javascript](javascript/programmatically-create-task-example)
-| Custom Agent Desktop with Azure SSO Integration | How to launch a custom Amazon Connect Agent Desktop from Microsoft 365 Application Launcher | [Javascript](javascript/customAgentDesktop-AzureSSO)
 | Amazon Connect Reg-Ex Patterns | For use in Cloudformation templates | [Tools](tools/)|
 | Amazon Connect Draw.io Objects | Contact flow blocks that can be imported into Draw.io | [Tools](tools/)|
 | Check Time Left | This snippet helps make a routing decision whether to add a new contact to the queue or take another action (like terminating the call) based on the queue length and the business hours for that day. | [Python](python/CheckTimeLeft/) |
