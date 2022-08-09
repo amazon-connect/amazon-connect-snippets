@@ -1,29 +1,29 @@
 {
-  "name": "amazon_connect_tasks_cloud_formation_template",
-  "version": "0.1.0",
-  "bin": {
-    "amazon_connect_tasks_cloud_formation_template": "bin/amazon_connect_tasks_cloud_formation_template.js"
-  },
-  "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
-  },
-  "devDependencies": {
-    "@aws-cdk/assert": "^1.71.0",
-    "@types/jest": "^26.0.10",
-    "@types/node": "10.17.27",
-    "aws-cdk": "^1.71.0",
-    "jest": "^27.2.5",
-    "ts-jest": "^27.0.6",
-    "ts-node": "^8.1.0",
-    "typescript": "~3.9.7"
-  },
-  "dependencies": {
-    "@aws-cdk/aws-iam": "^1.71.0",
-    "@aws-cdk/aws-lambda": "^1.71.0",
-    "@aws-cdk/core": "^1.71.0",
-    "source-map-support": "^0.5.16"
-  }
+    "name": "amazon_connect_tasks_cloud_formation_template",
+    "version": "0.1.0",
+    "bin": {
+        "amazon_connect_tasks_cloud_formation_template": "bin/amazon_connect_tasks_cloud_formation_template.js"
+    },
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc -w",
+        "test": "jest",
+        "cdk": "cdk"
+    },
+    "devDependencies": {
+        "@aws-cdk/assert": "1.167.0",
+        "@types/jest": "^27.4.1",
+        "@types/node": "10.17.27",
+        "aws-cdk": "1.167.0",
+        "jest": "^27.5.1",
+        "ts-jest": "^27.1.5",
+        "ts-node": "^9.1.1",
+        "typescript": "^3.9.9"
+    },
+    "dependencies": {
+        "@aws-cdk/aws-iam": "1.167.0",
+        "@aws-cdk/aws-lambda": "1.167.0",
+        "@aws-cdk/core": "1.167.0",
+        "source-map-support": "^0.5.16"
+    }
 }
