@@ -12,9 +12,9 @@ elseif (Get-Module -Name "AWSPowerShell.Netcore") {
     Write-Host "AWS PowerShell.Netcore Module installed.  Importing it now..."
     Import-Module -Name AWSPowerShell.Netcore
 }
-elseif (Get-Module -Name "AWS.Tools.Connect" ) {
-    Write-Host "AWS.Tools.Connect module installed.  Importing now"
-    Import-Module -Name AWS.Tools.Connect
+elseif (Get-Module -Name "AWS.Tools.ConnectWisdomService" ) {
+    Write-Host "AWS.Tools.ConnectWisdomService module installed.  Importing now"
+    Import-Module -Name AWS.Tools.ConnectWisdomService
     Import-Module -Name AWS.Tools.Common
 }
 else {
@@ -76,6 +76,7 @@ elseif ($newContent) {
     foreach ($file in $newContent) {
     
         # This returns parameters used for the upload and then creating the content/associating it with the upload.
+        #By default this uses HTML as the content type.  Feel free to update if you have to use a different one.
         $uploadDetails = Start-WSDMContentUpload -KnowledgeBaseId $kbArn -ContentType text/html
     
         $destinationUrl = $uploadDetails.url 
@@ -88,7 +89,7 @@ elseif ($newContent) {
         #upload the content:
         Invoke-RestMethod -Method PUT -Uri $destinationUrl -Headers $headers -Body $content
     
-        #Associate the uploaoded content to this newly created name:
+        #Associate the uploaded content to this newly created name:
         $uploadResult = New-WSDMContent -KnowledgeBaseId $kbArn -Name $file.Name -UploadId $uploadId
         Write-Host $uploadResult.Name "complete"
     }
