@@ -24,6 +24,7 @@
         "react/forbid-prop-types": "off",
         "indent": ["error", 4],
         "react/jsx-indent" : ["error", 4],
-        "react/jsx-indent-props": "off"
+        "react/jsx-indent-props": "off",
+        "linebreak-style": 0
     }
 }
