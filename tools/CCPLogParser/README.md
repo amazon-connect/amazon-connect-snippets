@@ -207,6 +207,8 @@ $ npm install
 $ npm run build
 ```
 
+Currently, the code can be compiled correctly with node v16.18.0 and npm 8.19.2. 
+
 The above command will build the tool and output artifact in `build` folder. You can serve it with a static web server.
 
 ```
