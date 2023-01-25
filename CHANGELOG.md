@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.5.3] - 2023-01-25
+### Changed
+ - [javascript/programmatically-create-task-example] Updating dependencies to address [CVE-1321](https://cwe.mitre.org/data/definitions/1321.html)
 ## [1.5.2] - 2023-01-25
 ### Changed
  - [tools/CCPLogParser] Updating dependencies to address [CVE-1321](https://cwe.mitre.org/data/definitions/1321.html)
