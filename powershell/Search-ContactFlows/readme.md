@@ -1,6 +1,6 @@
 Downloads and searches Amazon Connect contact flows for a specified String.  Example of the script in action:
 
-![Screen_Shot_2022-12-15_at_2.31.01_PM](/powershell/Search-ContaactFlows/Screen_Shot_2022-12-15_at_2.31.01_PM.png)
+![Screen_Shot_2022-12-15_at_2.31.01_PM](/amazon-connect-snippets/-/blob/master/powershell/Search-ContactFlows/Screen_Shot_2022-12-15_at_2.31.01_PM.png)
 
 I tested this in CloudShell. Steps to make it work:
 
