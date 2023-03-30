@@ -1,9 +1,5 @@
 Downloads and searches Amazon Connect contact flows for a specified String.
 
-![Screen_Shot](./Screen_Shot.png)
-
-I tested this in CloudShell. Steps to make it work:
-
 CloudShell instructions:
 
 1. Copy the script to CloudShell.
@@ -12,8 +8,7 @@ CloudShell instructions:
 
 Screenshot below shows sample usage in CloudShell:
 
-![Screen_Shot](/powershell/Search-ContaactFlows/Screen_Shot.png)
-
+![Screen_Shot](./Screen_Shot.png)
 
 Cloud9 instructions:
 
