@@ -15,8 +15,10 @@ Param(
     [boolean] $DownloadFlows = $true
 )
 
-Write-Host "Importing AWSPowerShell.Netcore module.  hang on a sec..."
-Import-Module AWSPowerShell.Netcore
+Write-Host "Importing AWS.Tools.Common.  hang on a sec..."
+Import-Module AWS.Tools.Common
+Write-Host "Importing AWS.Tools.Connect.  hang on a sec..."
+Import-Module AWS.Tools.Connect
 
 if ($downloadFlows -eq $true) {
     
