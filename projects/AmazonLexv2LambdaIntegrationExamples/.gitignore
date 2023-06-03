@@ -1,0 +1,20 @@
+
+# dependencies
+/node_modules/
+
+# build
+/cdk.out/
+
+# ide
+/.vscode
+.vscode
+/.idea/
+
+# ignore files compiled from ts files - this assumes that ALL js files in these dirs were generated from ts
+*.d.ts
+/src/**/*.js
+/cdkStacks/**/*.js
+/bin/*.js
+
+# General
+.DS_Store
