@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This folder contains examples of lambdas for use with lex v2 code hooks.
+This folder contains examples of AWS Lambda functions for use with Amazon Lex v2 code hooks.
 
 
 ## Prerequisites
