@@ -1,0 +1,36 @@
+{
+  "name": "amazon-lex-v2-lambda-integration-examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "lib": "cdkStacks"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk",
+    "cdk:nag": "cdk synth --all",
+    "cdk:bootstrap": "cdk bootstrap --all",
+    "cdk:deploy:all": "cdk deploy --all",
+    "cdk:destroy:all": "cdk destroy --all",
+    "cdk:deploy:basiclambda": "cdk deploy BasicLexLambdaIntegration",
+    "cdk:destroy:basiclambda": "cdk destroy BasicLexLambdaIntegration",
+    "cdk:deploy:reminderbot": "cdk deploy ReminderBot",
+    "cdk:destroy:reminderbot": "cdk destroy ReminderBot"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-kendra": "^3.316.0",
+    "@aws-sdk/client-lex-runtime-v2": "^3.316.0",
+    "@types/node": "^18.15.12",
+    "aws-cdk-lib": "^2.76.0",
+    "cdk-nag": "^2.26.12",
+    "esbuild": "^0.17.17",
+    "typescript": "^4.9.5"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "moment": "^2.29.4"
+  }
+}
