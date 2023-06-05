@@ -1,0 +1,10 @@
+{
+  "name": "ReminderBot",
+  "version": "DRAFT",
+  "description": "Example reminder bot to demonstrate different lambda integration options.",
+  "identifier": "",
+  "dataPrivacy": {
+    "childDirected": false
+  },
+  "idleSessionTTLInSeconds": 300
+}

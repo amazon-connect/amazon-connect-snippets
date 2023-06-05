@@ -1,0 +1,266 @@
+{
+  "name": "DaysBefore",
+  "identifier": "",
+  "description": "Slot to capture the number of days before an appointment that the user would like a reminder email",
+  "slotTypeName": "AMAZON.Number",
+  "obfuscationSetting": null,
+  "valueElicitationSetting": {
+    "slotCaptureSetting": {
+      "captureResponse": null,
+      "captureNextStep": {
+        "sessionAttributes": {},
+        "dialogAction": {
+          "type": "EvaluateConditional",
+          "slotToElicit": null,
+          "suppressNextMessage": null
+        },
+        "intent": {
+          "name": null,
+          "slots": {}
+        }
+      },
+      "captureConditional": {
+        "isActive": true,
+        "conditionalBranches": [
+          {
+            "name": "DaysGreaterThan7",
+            "response": {
+              "allowInterrupt": true,
+              "messageGroupsList": [
+                {
+                  "message": {
+                    "imageResponseCard": null,
+                    "ssmlMessage": null,
+                    "customPayload": null,
+                    "plainTextMessage": {
+                      "value": "We can't email more than a week before your appointment. Please choose a number between 1 and 7."
+                    }
+                  },
+                  "variations": null
+                }
+              ]
+            },
+            "condition": {
+              "expressionString": "{DaysBefore} > 7"
+            },
+            "nextStep": {
+              "sessionAttributes": {},
+              "dialogAction": {
+                "type": "ElicitSlot",
+                "slotToElicit": "DaysBefore",
+                "suppressNextMessage": true
+              },
+              "intent": {
+                "name": "EmailIntent",
+                "slots": {
+                  "DaysBefore": {
+                    "value": {
+                      "interpretedValue": null
+                    },
+                    "values": null,
+                    "shape": null
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "DaysLessThan1",
+            "response": {
+              "allowInterrupt": true,
+              "messageGroupsList": [
+                {
+                  "message": {
+                    "imageResponseCard": null,
+                    "ssmlMessage": null,
+                    "customPayload": null,
+                    "plainTextMessage": {
+                      "value": "The last day we can email you is the day before your appointment. Please choose a number between 1 and 7."
+                    }
+                  },
+                  "variations": null
+                }
+              ]
+            },
+            "condition": {
+              "expressionString": "{DaysBefore} < 1"
+            },
+            "nextStep": {
+              "sessionAttributes": {},
+              "dialogAction": {
+                "type": "ElicitSlot",
+                "slotToElicit": "DaysBefore",
+                "suppressNextMessage": true
+              },
+              "intent": {
+                "name": "EmailIntent",
+                "slots": {
+                  "DaysBefore": {
+                    "value": {
+                      "interpretedValue": null
+                    },
+                    "values": null,
+                    "shape": null
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "defaultBranch": {
+          "response": null,
+          "nextStep": {
+            "sessionAttributes": {},
+            "dialogAction": {
+              "type": "FulfillIntent",
+              "slotToElicit": null,
+              "suppressNextMessage": null
+            },
+            "intent": {
+              "name": null,
+              "slots": {}
+            }
+          }
+        }
+      },
+      "failureResponse": null,
+      "failureNextStep": {
+        "sessionAttributes": {
+          "slot-failure": "true"
+        },
+        "dialogAction": {
+          "type": "StartIntent",
+          "slotToElicit": null,
+          "suppressNextMessage": null
+        },
+        "intent": {
+          "name": "FallbackIntent",
+          "slots": {}
+        }
+      },
+      "failureConditional": null,
+      "elicitationCodeHook": {
+        "enableCodeHookInvocation": false,
+        "invocationLabel": "EmailIntent_DaysBeforeSlot_PromptCodeHook"
+      },
+      "codeHook": null
+    },
+    "promptSpecification": {
+      "messageSelectionStrategy": "Random",
+      "allowInterrupt": true,
+      "promptAttemptsSpecification": {
+        "Retry1": {
+          "allowedInputTypes": {
+            "allowAudioInput": true,
+            "allowDTMFInput": true
+          },
+          "audioAndDTMFInputSpecification": {
+            "dtmfSpecification": {
+              "maxLength": 513,
+              "deletionCharacter": "*",
+              "endCharacter": "#",
+              "endTimeoutMs": 5000
+            },
+            "audioSpecification": {
+              "maxLengthMs": 15000,
+              "endTimeoutMs": 640
+            },
+            "startTimeoutMs": 4000
+          },
+          "allowInterrupt": true,
+          "textInputSpecification": {
+            "startTimeoutMs": 30000
+          }
+        },
+        "Initial": {
+          "allowedInputTypes": {
+            "allowAudioInput": true,
+            "allowDTMFInput": true
+          },
+          "audioAndDTMFInputSpecification": {
+            "dtmfSpecification": {
+              "maxLength": 513,
+              "deletionCharacter": "*",
+              "endCharacter": "#",
+              "endTimeoutMs": 5000
+            },
+            "audioSpecification": {
+              "maxLengthMs": 15000,
+              "endTimeoutMs": 640
+            },
+            "startTimeoutMs": 4000
+          },
+          "allowInterrupt": true,
+          "textInputSpecification": {
+            "startTimeoutMs": 30000
+          }
+        },
+        "Retry3": {
+          "allowedInputTypes": {
+            "allowAudioInput": true,
+            "allowDTMFInput": true
+          },
+          "audioAndDTMFInputSpecification": {
+            "dtmfSpecification": {
+              "maxLength": 513,
+              "deletionCharacter": "*",
+              "endCharacter": "#",
+              "endTimeoutMs": 5000
+            },
+            "audioSpecification": {
+              "maxLengthMs": 15000,
+              "endTimeoutMs": 640
+            },
+            "startTimeoutMs": 4000
+          },
+          "allowInterrupt": true,
+          "textInputSpecification": {
+            "startTimeoutMs": 30000
+          }
+        },
+        "Retry2": {
+          "allowedInputTypes": {
+            "allowAudioInput": true,
+            "allowDTMFInput": true
+          },
+          "audioAndDTMFInputSpecification": {
+            "dtmfSpecification": {
+              "maxLength": 513,
+              "deletionCharacter": "*",
+              "endCharacter": "#",
+              "endTimeoutMs": 5000
+            },
+            "audioSpecification": {
+              "maxLengthMs": 15000,
+              "endTimeoutMs": 640
+            },
+            "startTimeoutMs": 4000
+          },
+          "allowInterrupt": true,
+          "textInputSpecification": {
+            "startTimeoutMs": 30000
+          }
+        }
+      },
+      "messageGroupsList": [
+        {
+          "message": {
+            "imageResponseCard": null,
+            "ssmlMessage": null,
+            "customPayload": null,
+            "plainTextMessage": {
+              "value": "How many days before your appointment would you like us to email you?"
+            }
+          },
+          "variations": null
+        }
+      ],
+      "maxRetries": 3
+    },
+    "slotConstraint": "Required",
+    "defaultValueSpecification": null,
+    "sampleUtterances": null,
+    "waitAndContinueSpecification": null
+  },
+  "multipleValuesSetting": null
+}
