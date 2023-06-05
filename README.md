@@ -28,7 +28,7 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Restrict Deskphone in CCP | Enforce deskphone settings with javascript in the CCP | [Javascript](javascript/restrict-deskphone-in-ccp) |
 | Remote Control Center | Centrally manage prompts and routing configurations in DynamoDB | [Python](python/remote-control-center) |
 | Contact Flow Helper | A single AWS Lambda function which provides a set of basic math and text tools to help manipulate data in contact flows | [Python](python/contactflowhelper)|
-| Create Tasks Programmatically | CloudFormation template to enable you to programmatically create an Amazon Connect Task | [Javascript](javascript/programmatically-create-task-example)
+| Create Tasks Programmatically | CloudFormation template to enable you to programmatically create an Amazon Connect Task | [Javascript](javascript/programmatically-create-task-example) |
 | Amazon Connect Reg-Ex Patterns | For use in Cloudformation templates | [Tools](tools/)|
 | Amazon Connect Draw.io Objects | Contact flow blocks that can be imported into Draw.io | [Tools](tools/)|
 | Check Time Left | This snippet helps make a routing decision whether to add a new contact to the queue or take another action (like terminating the call) based on the queue length and the business hours for that day. | [Python](python/CheckTimeLeft/) |
@@ -49,9 +49,9 @@ Feel free to add more languages. Please follow the requirements in each subdirec
 | Rate Limiter                      | The rate limiter project utilizes AWS Lambda and Amazon DynamoDB dynamically to add rate limiting a caller to a Amazon Connect queue based on their phone number and/or IP address.                                                  | [CloudFormation](projects/RateLimiter) |
 | CCP Log Parser                    | A visualisation tool to visualise CCP logs to help troubleshoot client side errors                                                                                                                                                   | [link](tools/CCPLogParser) |
 | Connectivity Test Tool            | This tool checks which web browser the agent is running, the network configuration from the client side and whether the microphone has required permissions.                                                                         | [link](tools/CCPConnectivityTestTools) |
-| Dynamic Contact Center            | This project demonstrates how you can use persistent session attributes to develop modular, repeatable and dynamic contact flows                                                                                                     | [CloudFormation](projects/DynamicContactCenter)
-| Connect Cloudwatch Dashboard      | This project automates the creation and deployment of a Cloudwatch Dashboard to monitor critical metrics for an Amazon Connect instance                                                                                              | [link](tools/ConnectCloudwatchDashboard/README.md)  
-| Lex v2 Lambda integration example | This folder contains examples of AWS Lambda functions for use with Amazon Lex v2 code hooks.                                                                                                                                         | [link](projects/AmazonLexv2LambdaIntegrationExamples/README.md)  
+| Dynamic Contact Center            | This project demonstrates how you can use persistent session attributes to develop modular, repeatable and dynamic contact flows                                                                                                     | [CloudFormation](projects/DynamicContactCenter) |
+| Connect Cloudwatch Dashboard      | This project automates the creation and deployment of a Cloudwatch Dashboard to monitor critical metrics for an Amazon Connect instance                                                                                              | [link](tools/ConnectCloudwatchDashboard/README.md) |
+| Lex v2 Lambda integration example | This folder contains examples of AWS Lambda functions for use with Amazon Lex v2 code hooks.                                                                                                                                         | [link](projects/AmazonLexv2LambdaIntegrationExamples/README.md) |  
 
 
 ## Contributions
