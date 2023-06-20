@@ -1,0 +1,255 @@
+{
+  "name": "EmailIntent",
+  "identifier": "",
+  "description": "Intent to book a reminder email.",
+  "parentIntentSignature": null,
+  "sampleUtterances": [
+    {
+      "utterance": "email"
+    },
+    {
+      "utterance": "I would like an email"
+    },
+    {
+      "utterance": "Please send me an email"
+    },
+    {
+      "utterance": "just email me"
+    },
+    {
+      "utterance": "I want an email"
+    },
+    {
+      "utterance": "remind me on email"
+    },
+    {
+      "utterance": "send me an email to confirm"
+    },
+    {
+      "utterance": "mail me the info"
+    },
+    {
+      "utterance": "i want to get an email"
+    },
+    {
+      "utterance": "email is fine"
+    },
+    {
+      "utterance": "I would prefer an email"
+    },
+    {
+      "utterance": "I would rather have an email"
+    },
+    {
+      "utterance": "I'd like to get an email"
+    },
+    {
+      "utterance": "An email would be best"
+    },
+    {
+      "utterance": "Send me an email {DaysBefore} days my appointment"
+    },
+    {
+      "utterance": "I want an email {DaysBefore}  days before"
+    },
+    {
+      "utterance": "I"
+    }
+  ],
+  "intentConfirmationSetting": null,
+  "intentClosingSetting": null,
+  "initialResponseSetting": {
+    "initialResponse": null,
+    "codeHook": {
+      "isActive": true,
+      "enableCodeHookInvocation": true,
+      "invocationLabel": "EmailIntent_InitialCodeHook",
+      "postCodeHookSpecification": {
+        "failureResponse": null,
+        "failureNextStep": {
+          "sessionAttributes": {},
+          "dialogAction": {
+            "type": "EndConversation",
+            "slotToElicit": null,
+            "suppressNextMessage": null
+          },
+          "intent": {
+            "name": null,
+            "slots": {}
+          }
+        },
+        "failureConditional": null,
+        "successNextStep": {
+          "sessionAttributes": {},
+          "dialogAction": {
+            "type": "ElicitSlot",
+            "slotToElicit": "DaysBefore",
+            "suppressNextMessage": null
+          },
+          "intent": {
+            "name": null,
+            "slots": {}
+          }
+        },
+        "successResponse": null,
+        "successConditional": null,
+        "timeoutResponse": null,
+        "timeoutNextStep": {
+          "sessionAttributes": {},
+          "dialogAction": {
+            "type": "EndConversation",
+            "slotToElicit": null,
+            "suppressNextMessage": null
+          },
+          "intent": {
+            "name": null,
+            "slots": {}
+          }
+        },
+        "timeoutConditional": null
+      }
+    },
+    "conditional": {
+      "isActive": true,
+      "conditionalBranches": [
+        {
+          "name": "DaysBeforeSet",
+          "response": null,
+          "condition": {
+            "expressionString": "fn.IS_SET({DaysBefore})"
+          },
+          "nextStep": {
+            "sessionAttributes": {},
+            "dialogAction": {
+              "type": "InvokeDialogCodeHook",
+              "slotToElicit": null,
+              "suppressNextMessage": null
+            },
+            "intent": {
+              "name": null,
+              "slots": {}
+            }
+          }
+        }
+      ],
+      "defaultBranch": {
+        "response": {
+          "allowInterrupt": false,
+          "messageGroupsList": [
+            {
+              "message": {
+                "imageResponseCard": null,
+                "ssmlMessage": null,
+                "customPayload": null,
+                "plainTextMessage": {
+                  "value": "We will email you on the day you choose up to a week before your appointment."
+                }
+              },
+              "variations": null
+            }
+          ]
+        },
+        "nextStep": {
+          "sessionAttributes": {},
+          "dialogAction": {
+            "type": "InvokeDialogCodeHook",
+            "slotToElicit": null,
+            "suppressNextMessage": null
+          },
+          "intent": {
+            "name": null,
+            "slots": {}
+          }
+        }
+      }
+    },
+    "nextStep": {
+      "sessionAttributes": {
+        "fallback-count": "0",
+        "slot-failure": "false"
+      },
+      "dialogAction": {
+        "type": "EvaluateConditional",
+        "slotToElicit": null,
+        "suppressNextMessage": null
+      },
+      "intent": {
+        "name": null,
+        "slots": {}
+      }
+    }
+  },
+  "inputContexts": null,
+  "outputContexts": null,
+  "kendraConfiguration": null,
+  "dialogCodeHook": {
+    "enabled": true
+  },
+  "fulfillmentCodeHook": {
+    "isActive": true,
+    "fulfillmentUpdatesSpecification": null,
+    "postFulfillmentStatusSpecification": {
+      "failureResponse": null,
+      "failureNextStep": {
+        "sessionAttributes": {},
+        "dialogAction": {
+          "type": "EndConversation",
+          "slotToElicit": null,
+          "suppressNextMessage": null
+        },
+        "intent": {
+          "name": null,
+          "slots": {}
+        }
+      },
+      "successNextStep": {
+        "sessionAttributes": {},
+        "dialogAction": {
+          "type": "EndConversation",
+          "slotToElicit": null,
+          "suppressNextMessage": null
+        },
+        "intent": {
+          "name": null,
+          "slots": {}
+        }
+      },
+      "successResponse": {
+        "allowInterrupt": true,
+        "messageGroupsList": [
+          {
+            "message": {
+              "imageResponseCard": null,
+              "ssmlMessage": null,
+              "customPayload": null,
+              "plainTextMessage": {
+                "value": "No problem! Your email reminder has been set up for {DaysBefore} days before your appointment."
+              }
+            },
+            "variations": null
+          }
+        ]
+      },
+      "timeoutResponse": null,
+      "timeoutNextStep": {
+        "sessionAttributes": {},
+        "dialogAction": {
+          "type": "EndConversation",
+          "slotToElicit": null,
+          "suppressNextMessage": null
+        },
+        "intent": {
+          "name": null,
+          "slots": {}
+        }
+      }
+    },
+    "enabled": true
+  },
+  "slotPriorities": [
+    {
+      "priority": 0,
+      "slotName": "DaysBefore"
+    }
+  ]
+}
