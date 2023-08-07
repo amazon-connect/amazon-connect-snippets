@@ -1,5 +1,5 @@
-const aws = require('aws-sdk');
-const axios = require('axios');
+import aws from 'aws-sdk';
+import axios from 'axios';
 // upload lambda layer to use the libraries above. See blog for detailed instructions on creating a layer
 
 const s3 = new aws.S3({ apiVersion: '2006-03-01' });
@@ -19,10 +19,11 @@ async function upload(s3Object) {
         headers: uploadDetails.headersToInclude
     });
 
+    console.info("Uploaded content");
     return uploadDetails.uploadId;
 }
 
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
     console.log('Received event:', JSON.stringify(event, null, 2));
 
     const bucket = event.Records[0].s3.bucket.name;
@@ -48,6 +49,8 @@ exports.handler = async (event, context) => {
             return;
         }
 
+        console.info("Deleting content");
+
         // delete content
         await wisdom.deleteContent({
             knowledgeBaseId: knowledgeBaseId,
@@ -71,6 +74,8 @@ exports.handler = async (event, context) => {
             return;
         }
 
+        console.info("Updating content");
+
         // update case
         content = await wisdom.updateContent({
             knowledgeBaseId: knowledgeBaseId,
@@ -81,7 +86,11 @@ exports.handler = async (event, context) => {
                 'sourceS3Version': version
             }
         }).promise();
+
     } else {
+
+        console.info("Creating content");
+
         // create case
         content = await wisdom.createContent({
             knowledgeBaseId: knowledgeBaseId,
