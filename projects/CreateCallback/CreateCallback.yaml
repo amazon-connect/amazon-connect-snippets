@@ -1,0 +1,157 @@
+AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  'AWS::CloudFormation::Designer':
+    91f7e09a-77e9-4b8a-8e75-a947fac5f2b9:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 133
+        'y': 70
+      z: 0
+      embeds: []
+    3a23932d-81f5-49c3-9abb-e6064dcec8e3:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 240
+        'y': 70
+      z: 0
+      embeds: []
+      dependson:
+        - 91f7e09a-77e9-4b8a-8e75-a947fac5f2b9
+Parameters:
+  LambdaName:
+    Type: String
+    Description: Enter the name to use for the Lambda that creates the outbound call.
+  RoleName:
+    Type: String
+    Description: >-
+      Enter the name for the role that allows the lambda to make outbound calls
+      and log to CloudWatch.
+  ContactFlowId:
+    Type: String
+    Description: >-
+      Enter the flow Id of the CreateCallback flow you have previously imported into Amazon Connect.
+  DestinationPhoneNumber:
+    Type: String
+    Description: >-
+      Enter the phone number associated with the Amazon Connect instance. +1XXXXXXXXXX
+  InstanceId:
+    Type: String
+    Description: >-
+      Enter the Instance Id of the Amazon Connect instance.
+  QueueId:
+    Type: String
+    Description: >-
+      Enter the id for the callback queue you want to push the callback into.
+  SourcePhoneNumber:
+    Type: String
+    Description: >-
+      This needs to be set to a number claimed by the Amazon Connect instance. It can be the same as the "DestinationPhoneNumber" paramter.
+Resources:
+  CreateCallback:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Environment:
+          Variables:
+            ContactFlowId: {Ref: ContactFlowId}
+            DestinationPhoneNumber: {Ref: DestinationPhoneNumber}
+            InstanceId: {Ref: InstanceId}
+            QueueId: {Ref: QueueId}
+            SourcePhoneNumber: {Ref: SourcePhoneNumber}
+      Runtime: nodejs12.x
+      Role: !GetAtt 
+        - CreateCallbackLambdaRole
+        - Arn
+      FunctionName:
+        Ref: LambdaName
+      Handler: index.handler
+      Code:
+        ZipFile: >
+          const AWS = require('aws-sdk');
+
+          var connect = new AWS.Connect();
+
+          // main entry to the flow
+
+
+          exports.handler = (event, context, callback) => {
+
+          //define parameter values to use in initiating the outbound call. If a paramter is provided it will override the paramters stored  as environment varables.
+
+
+              var params = {  
+              ContactFlowId: process.env.ContactFlowId || event.ContactFlowId,//event.ContactFlowId,//The contact flow to point to initially. Points directly to the create callback flow.
+              DestinationPhoneNumber: process.env.DestinationPhoneNumber || event.DestinationPhoneNumber,//The number to dial, hte call centers number in this case
+              InstanceId: process.env.InstanceId || event.InstanceId,//The instanceId of the Amazon Connect instance
+              QueueId: process.env.QueueId || event.QueueId,//This is the id of the callback queue
+              Attributes: event.Attributes,//{"CallbackNumber": "+15555555555"} Callbacknumber is the number of the  customer to call back
+              SourcePhoneNumber: process.env.SourcePhoneNumber || event.SourcePhoneNumber//This has to be set to a number claimed by the call center
+          };
+
+
+
+
+
+          try {
+              // method used to initiate the outbound call from Amazon Connect
+              connect.startOutboundVoiceContact(params, function(err, data) {
+              if (err) console.log(err, err.stack) ;
+              else console.log(data);
+          });
+
+              callback(null, event);
+          } catch (e){
+              callback(e);
+          }
+
+
+
+          };
+    Description: >-
+      This lambda takes paramters and creates an outbound call to the connect
+      instance that is then routed into the callback queue (configureable)
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 91f7e09a-77e9-4b8a-8e75-a947fac5f2b9
+    DependsOn:
+      - CreateCallbackLambdaRole
+  CreateCallbackLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      Description: >-
+        This role allows the CreateCallback Lambda to create outbound calls in
+        Connect and log to CloudWatch
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: CreateOutboundCall
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*'
+
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${LambdaName}:*'
+              - Effect: Allow
+                Action: 'connect:StartOutboundVoiceContact'
+                Resource: !Sub 'arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/${InstanceId}/contact/*'
+      RoleName:
+        Ref: RoleName
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 3a23932d-81f5-49c3-9abb-e6064dcec8e3
