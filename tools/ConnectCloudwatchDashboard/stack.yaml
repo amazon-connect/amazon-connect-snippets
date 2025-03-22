@@ -68,7 +68,7 @@ Resources:
     Properties:
       Description: "Generates (to S3) the CloudFormation template to create Amazon Connect dashboard for instance."
       Handler: index.handler
-      Runtime: nodejs14.x
+      Runtime: nodejs16.x
       Role: !GetAtt "TheLambdaRole.Arn"
       FunctionName: !Sub "amazonConnectDashboard_${DashboardName}"
       Timeout: 12
