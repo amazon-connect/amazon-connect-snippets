@@ -128,7 +128,7 @@ class LogLineView extends React.PureComponent {
 
     render() {
         const {
-            classes, className: classNameProp, event, isSelected = false, ...props
+            classes, className: classNameProp, event, isSelected = false, onClickLine, ...props
         } = this.props;
         const { isMoreInfoOpen, isMessageContained, cause } = this.state;
 
@@ -145,6 +145,7 @@ class LogLineView extends React.PureComponent {
                 cause={cause}
                 hasMoreInfo={hasMoreInfo}
                 toggleMoreInfo={() => this.toggleMoreInfo()}
+                onClickLine={onClickLine}
                 {...props}
             />
         );
@@ -161,6 +162,7 @@ const ThemedLogLineView = ({
     cause,
     hasMoreInfo,
     toggleMoreInfo,
+    onClickLine,
     ...props
 }) => {
     const { theme } = useTheme();
@@ -204,7 +206,13 @@ const ThemedLogLineView = ({
                     role="button"
                     tabIndex="0"
                 />
-                <div style={{ display: 'inline' }}>
+                <div
+                    style={{ display: 'inline', cursor: onClickLine ? 'pointer' : 'inherit' }}
+                    onClick={() => onClickLine && onClickLine(event._key)}
+                    role="button"
+                    tabIndex="0"
+                    onKeyPress={(e) => e.key === 'Enter' && onClickLine && onClickLine(event._key)}
+                >
                     <span className={classes.timestamp}>{event.time}</span>
         &nbsp;
                     <span className={classes.component}>{event.component}</span>
@@ -244,11 +252,13 @@ ThemedLogLineView.propTypes = {
     cause: PropTypes.string.isRequired,
     hasMoreInfo: PropTypes.bool.isRequired,
     toggleMoreInfo: PropTypes.func.isRequired,
+    onClickLine: PropTypes.func,
 };
 
 ThemedLogLineView.defaultProps = {
     className: '',
     isSelected: false,
+    onClickLine: null,
 };
 
 LogLineView.propTypes = {
@@ -256,10 +266,12 @@ LogLineView.propTypes = {
     className: PropTypes.string,
     event: PropTypes.object.isRequired,
     isSelected: PropTypes.bool,
+    onClickLine: PropTypes.func,
 };
 LogLineView.defaultProps = {
     className: '',
     isSelected: false,
+    onClickLine: null,
 };
 
 export default withStyles(styles)(LogLineView);

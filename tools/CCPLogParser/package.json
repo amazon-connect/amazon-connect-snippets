@@ -1,6 +1,6 @@
 {
   "name": "ccp-log-parser",
-  "version": "2026.01.07",
+  "version": "2026.04.09",
   "private": true,
   "dependencies": {
     "@material-ui/core": "^4.11.0",

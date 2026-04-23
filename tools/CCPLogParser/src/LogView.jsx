@@ -146,6 +146,7 @@ class LogView extends React.PureComponent {
     render() {
         const {
             classes, className: classNameProp, log, selected = [], isExpanded = false, expand,
+            onClickLogLine,
         } = this.props;
         const { levelFilter, regexFilter } = this.state;
 
@@ -165,6 +166,7 @@ class LogView extends React.PureComponent {
                 selected={selected}
                 isExpanded={isExpanded}
                 expand={expand}
+                onClickLogLine={onClickLogLine}
                 levelFilter={levelFilter}
                 regexFilter={regexFilter}
                 re={re}
@@ -182,6 +184,7 @@ const ThemedLogView = ({
     selected,
     isExpanded,
     expand,
+    onClickLogLine,
     levelFilter,
     regexFilter,
     re,
@@ -201,6 +204,8 @@ const ThemedLogView = ({
             backgroundColor: theme.colors.surface,
         },
     };
+
+    const selectedSet = React.useMemo(() => new Set(selected), [selected]);
 
     return (
         <div className={clsx(classes.root, classNameProp)} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -253,7 +258,8 @@ const ThemedLogView = ({
                                         key={event._key}
                                         className={classes.row}
                                         event={event}
-                                        isSelected={selected.includes(event._key)}
+                                        isSelected={selectedSet.has(event._key)}
+                                        onClickLine={onClickLogLine}
                                     />
                                 );
                             }
@@ -273,6 +279,7 @@ ThemedLogView.propTypes = {
     selected: PropTypes.array,
     isExpanded: PropTypes.bool,
     expand: PropTypes.func.isRequired,
+    onClickLogLine: PropTypes.func,
     levelFilter: PropTypes.number.isRequired,
     regexFilter: PropTypes.string.isRequired,
     re: PropTypes.object,
@@ -284,6 +291,7 @@ ThemedLogView.defaultProps = {
     className: '',
     selected: [],
     isExpanded: false,
+    onClickLogLine: null,
     re: null,
 };
 
@@ -294,11 +302,13 @@ LogView.propTypes = {
     selected: PropTypes.array,
     isExpanded: PropTypes.bool,
     expand: PropTypes.func.isRequired,
+    onClickLogLine: PropTypes.func,
 };
 LogView.defaultProps = {
     className: '',
     selected: [],
     isExpanded: false,
+    onClickLogLine: null,
 };
 
 export default withStyles(styles)(LogView);

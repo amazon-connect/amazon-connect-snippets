@@ -154,6 +154,7 @@ class App extends React.Component {
         this.handleChangeTab = this.handleChangeTab.bind(this);
         this.handleOnDrop = this.handleOnDrop.bind(this);
         this.handleExpandLogView = this.handleExpandLogView.bind(this);
+        this.handleClickLogLine = this.handleClickLogLine.bind(this);
         this.dropzoneRef = createRef();
 
         if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -255,11 +256,45 @@ class App extends React.Component {
 
         const timeRange = [rearrangedLog[0]._ts, rearrangedLog[rearrangedLog.length - 1]._ts];
 
+        // Compute snapshots and reverse lookup map (logKey → snapshot)
+        const snapshots = rearrangedLog
+            .filter((event) => (event.text === 'GET_AGENT_SNAPSHOT succeeded.'))
+            .flatMap((event) => event.objects.map((object, idx) => ({
+                ...object.snapshot,
+                _event: event,
+                _key: `${event._key}-${idx}`,
+                _date: object.snapshot.snapshotTimestamp.substring(0, 10),
+                _time: object.snapshot.snapshotTimestamp.substring(11, 23),
+                _timezone: object.snapshot.snapshotTimestamp.substring(23),
+            })))
+            .map((snapshot, idx, arr) => {
+                const eventKeyFrom = snapshot._event._key;
+                const eventKeyTo = (idx !== arr.length - 1)
+                    ? arr[idx + 1]._event._key
+                    : rearrangedLog[rearrangedLog.length - 1]._key;
+                return {
+                    ...snapshot,
+                    _targetEventKeys: Array.from(
+                        Array(eventKeyTo - eventKeyFrom),
+                        (v, k) => (k + eventKeyFrom),
+                    ),
+                };
+            });
+
+        const logKeyToSnapshot = {};
+        snapshots.forEach((snapshot) => {
+            snapshot._targetEventKeys.forEach((key) => {
+                logKeyToSnapshot[key] = snapshot;
+            });
+        });
+
         this.setState({
             isInitial: false,
             // eslint-disable-next-line react/no-unused-state
             originalLog: log.map((event, idx) => ({ ...event, _oriKey: idx })),
             log: rearrangedLog,
+            snapshots,
+            logKeyToSnapshot,
             selectedLog: [],
             selectedSnapshots: [],
             indexedLogs: buildIndex(),
@@ -276,6 +311,21 @@ class App extends React.Component {
         this.setState({ selectedSnapshots });
     }
 
+    handleClickLogLine(eventKey) {
+        const { logKeyToSnapshot } = this.state;
+        const snapshot = logKeyToSnapshot[eventKey];
+        if (snapshot) {
+            this.selectLog(snapshot._targetEventKeys);
+            this.selectSnapshots([snapshot._key]);
+            setTimeout(() => {
+                const el = document.getElementById(`snapshot-${snapshot._key}`);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'auto', block: 'center' });
+                }
+            }, 0);
+        }
+    }
+
     render() {
         const {
             tabIndex,
@@ -284,6 +334,7 @@ class App extends React.Component {
             isExpanded,
             filename,
             log,
+            snapshots,
             selectedLog,
             selectedSnapshots,
             indexedLogs,
@@ -302,6 +353,7 @@ class App extends React.Component {
                     isExpanded={isExpanded}
                     filename={filename}
                     log={log}
+                    snapshots={snapshots}
                     selectedLog={selectedLog}
                     selectedSnapshots={selectedSnapshots}
                     indexedLogs={indexedLogs}
@@ -312,6 +364,7 @@ class App extends React.Component {
                     handleExpandLogView={this.handleExpandLogView}
                     selectLog={this.selectLog}
                     selectSnapshots={this.selectSnapshots}
+                    handleClickLogLine={this.handleClickLogLine}
                     dropzoneRef={this.dropzoneRef}
                 />
             </ThemeProvider>
@@ -327,6 +380,7 @@ const ThemedApp = ({
     isExpanded,
     filename,
     log,
+    snapshots,
     selectedLog,
     selectedSnapshots,
     indexedLogs,
@@ -337,6 +391,7 @@ const ThemedApp = ({
     handleExpandLogView,
     selectLog,
     selectSnapshots,
+    handleClickLogLine,
     dropzoneRef,
 }) => {
     const { theme } = useTheme();
@@ -448,6 +503,7 @@ const ThemedApp = ({
                                                     <Grid item xs={12} md={3} style={isExpanded ? { display: 'none' } : {}} className={classes.scrollableContainer}>
                                                         <SnapshotListView
                                                             log={log}
+                                                            snapshots={snapshots}
                                                             selected={selectedSnapshots}
                                                             selectLog={selectLog}
                                                             selectSnapshots={selectSnapshots}
@@ -465,6 +521,7 @@ const ThemedApp = ({
                                                             selected={selectedLog}
                                                             isExpanded={isExpanded}
                                                             expand={handleExpandLogView}
+                                                            onClickLogLine={handleClickLogLine}
                                                         />
                                                     </Grid>
                                                 </Grid>
@@ -506,6 +563,7 @@ ThemedApp.propTypes = {
     isExpanded: PropTypes.bool.isRequired,
     filename: PropTypes.string,
     log: PropTypes.array.isRequired,
+    snapshots: PropTypes.array,
     selectedLog: PropTypes.array.isRequired,
     selectedSnapshots: PropTypes.array.isRequired,
     indexedLogs: PropTypes.object,
@@ -516,11 +574,13 @@ ThemedApp.propTypes = {
     handleExpandLogView: PropTypes.func.isRequired,
     selectLog: PropTypes.func.isRequired,
     selectSnapshots: PropTypes.func.isRequired,
+    handleClickLogLine: PropTypes.func.isRequired,
     dropzoneRef: PropTypes.object.isRequired,
 };
 
 ThemedApp.defaultProps = {
     filename: null,
+    snapshots: [],
     indexedLogs: null,
     hasRtcMetrics: false,
     timeRange: null,
