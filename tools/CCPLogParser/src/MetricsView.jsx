@@ -39,7 +39,6 @@ const styles = (theme) => ({
         flexShrink: 0,
         flexDirection: 'column',
         padding: theme.spacing(1, 2),
-        background: '#f7f7f7',
     },
     headerInside: {
         position: 'relative',
@@ -77,7 +76,6 @@ const styles = (theme) => ({
     },
     tooltip: {
         border: '1px rgba(0, 0, 0, 0.35) solid',
-        background: 'rgba(255, 255, 255, 0.96)',
         fontSize: '14px',
         padding: theme.spacing(0.5),
         '&$normal': {
@@ -85,7 +83,6 @@ const styles = (theme) => ({
         },
         '&$abnormal': {
             border: '1px rgba(200, 0, 0, 0.35) solid',
-            background: 'rgba(255, 235, 235, 0.96)',
         },
         '& .date': {
             fontWeight: 'bold',
