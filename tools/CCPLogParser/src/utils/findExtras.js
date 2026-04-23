@@ -184,6 +184,7 @@ handlers.API_REPLY = (input, matched, pattern) => {
         try {
             output.objects = [JSON.parse(matched[3])];
         } catch (e) {
+            // eslint-disable-next-line no-console
             console.warn('Failed to parse API error details:', matched[3]);
             output.objects = [{ error: matched[3] }];
         }

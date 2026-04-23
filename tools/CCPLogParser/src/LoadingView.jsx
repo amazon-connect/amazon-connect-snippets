@@ -16,6 +16,7 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import AutorenewIcon from '@material-ui/icons/Autorenew';
+import { useTheme } from './ThemeContext';
 
 const styles = (theme) => ({
     root: {
@@ -39,26 +40,35 @@ const styles = (theme) => ({
     },
     icon: {
         fontSize: 160,
-        color: 'rgba(0,0,0,0.25)',
     },
-    text: {
-        color: 'rgba(0,0,0,0.5)',
-    },
+    text: {},
 });
 
 const LoadingView = (props) => {
     const { classes } = props;
 
     return (
+        <ThemedLoadingView classes={classes} />
+    );
+};
+
+const ThemedLoadingView = ({ classes }) => {
+    const { theme } = useTheme();
+
+    return (
         <div className={classes.root}>
             <div className={classes.container}>
-                <AutorenewIcon className={`${classes.icon} rotating-icon`} />
-                <Typography className={classes.text} variant="h5" component="h3">
+                <AutorenewIcon className={`${classes.icon} rotating-icon`} style={{ color: theme.colors.iconSecondary }} />
+                <Typography className={classes.text} variant="h5" component="h3" style={{ color: theme.colors.textMuted }}>
                     Loading...
                 </Typography>
             </div>
         </div>
     );
+};
+
+ThemedLoadingView.propTypes = {
+    classes: PropTypes.object.isRequired,
 };
 
 LoadingView.propTypes = {

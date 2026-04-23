@@ -16,6 +16,7 @@ import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { withStyles } from '@material-ui/core/styles';
 import ReactJson from 'react-json-view';
+import { useTheme } from './ThemeContext';
 
 import Messages from './utils/Messages';
 import CauseView from './CauseView';
@@ -26,9 +27,6 @@ const styles = (theme) => ({
         display: 'flex',
         flexDirection: 'row',
         padding: theme.spacing(0, 2, 0, 0),
-        '&:hover': {
-            background: 'rgba(0,0,0,0.1)',
-        },
         '&$error': {
             color: 'red',
             fontWeight: 'bold',
@@ -48,9 +46,6 @@ const styles = (theme) => ({
         },
         '&$log': {
             color: '#616161',
-        },
-        '&$selected': {
-            background: 'rgba(255,255,0,0.3)',
         },
     },
     moreInfoToggle: {
@@ -82,7 +77,6 @@ const styles = (theme) => ({
     level: {},
     text: {},
     moreInfo: {
-        background: '#f5f5f588',
         boxShadow: 'inset 0px 10px 16px -10px #0000001a, inset 0px -10px 16px -10px #0000001a',
         padding: theme.spacing(2, 1),
         fontSize: 14,
@@ -138,14 +132,51 @@ class LogLineView extends React.PureComponent {
         } = this.props;
         const { isMoreInfoOpen, isMessageContained, cause } = this.state;
 
-        const hasMoreInfo = event.exception || event.objects.length > 0;
+        const hasMoreInfo = !!(event.exception || event.objects.length > 0);
 
         return (
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            <div className={clsx(classes.root, classNameProp)} {...props}>
+            <ThemedLogLineView
+                classes={classes}
+                className={classNameProp}
+                event={event}
+                isSelected={isSelected}
+                isMoreInfoOpen={isMoreInfoOpen}
+                isMessageContained={isMessageContained}
+                cause={cause}
+                hasMoreInfo={hasMoreInfo}
+                toggleMoreInfo={() => this.toggleMoreInfo()}
+                {...props}
+            />
+        );
+    }
+}
 
-                <div className={clsx(classes.line, {
-                    [classes.selected]: isSelected,
+const ThemedLogLineView = ({
+    classes,
+    className: classNameProp,
+    event,
+    isSelected,
+    isMoreInfoOpen,
+    isMessageContained,
+    cause,
+    hasMoreInfo,
+    toggleMoreInfo,
+    ...props
+}) => {
+    const { theme } = useTheme();
+
+    const getLogLevelColor = () => {
+        if (event.level === 'TRACE' || event.level === 'LOG') {
+            return theme.colors.logTrace;
+        }
+        return undefined;
+    };
+
+    return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <div className={clsx(classes.root, classNameProp)} {...props}>
+            <div
+                className={clsx(classes.line, {
                     [classes.error]: event.level === 'ERROR',
                     [classes.warn]: event.level === 'WARN',
                     [classes.info]: event.level === 'INFO',
@@ -153,50 +184,72 @@ class LogLineView extends React.PureComponent {
                     [classes.debug]: event.level === 'DEBUG',
                     [classes.log]: event.level === 'LOG',
                 })}
-                >
-                    {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                    <div
-                        className={clsx(classes.moreInfoToggle, {
-                            [classes.exists]: hasMoreInfo,
-                            [classes.notExists]: !hasMoreInfo,
-                            [classes.open]: isMoreInfoOpen,
-                            [classes.closed]: !isMoreInfoOpen,
-                        })}
-                        onClick={() => this.toggleMoreInfo()}
-                        onKeyPress={() => this.toggleMoreInfo()}
-                        role="button"
-                        tabIndex="0"
-                    />
-                    <div style={{ display: 'inline' }}>
-                        <span className={classes.timestamp}>{event.time}</span>
-            &nbsp;
-                        <span className={classes.component}>{event.component}</span>
-            &nbsp;
-                        <span className={classes.level}>{event.level}</span>
-            &nbsp;
-                        <span className={classes.text}>
-                            { isMessageContained
-                                ? <CauseView message={event.text} cause={cause} /> : event.text}
-                        </span>
-                    </div>
+                style={{
+                    background: isSelected ? theme.colors.selected : 'transparent',
+                    color: getLogLevelColor(),
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = theme.colors.hover; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = isSelected ? theme.colors.selected : 'transparent'; }}
+            >
+                {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
+                <div
+                    className={clsx(classes.moreInfoToggle, {
+                        [classes.exists]: hasMoreInfo,
+                        [classes.notExists]: !hasMoreInfo,
+                        [classes.open]: isMoreInfoOpen,
+                        [classes.closed]: !isMoreInfoOpen,
+                    })}
+                    onClick={toggleMoreInfo}
+                    onKeyPress={toggleMoreInfo}
+                    role="button"
+                    tabIndex="0"
+                />
+                <div style={{ display: 'inline' }}>
+                    <span className={classes.timestamp}>{event.time}</span>
+        &nbsp;
+                    <span className={classes.component}>{event.component}</span>
+        &nbsp;
+                    <span className={classes.level}>{event.level}</span>
+        &nbsp;
+                    <span className={classes.text}>
+                        { isMessageContained
+                            ? <CauseView message={event.text} cause={cause} /> : event.text}
+                    </span>
                 </div>
-
-                { isMoreInfoOpen
-                && (
-                    <div className={clsx(classes.moreInfo)}>
-                        <ReactJson
-                            src={event}
-                            name={false}
-                            displayObjectSize={false}
-                            displayDataTypes={false}
-                        />
-                    </div>
-                )}
-
             </div>
-        );
-    }
-}
+
+            { isMoreInfoOpen
+            && (
+                <div className={clsx(classes.moreInfo)} style={{ background: theme.colors.moreInfo }}>
+                    <ReactJson
+                        src={event}
+                        name={false}
+                        displayObjectSize={false}
+                        displayDataTypes={false}
+                        theme={theme.name === 'dark' ? 'monokai' : 'rjv-default'}
+                    />
+                </div>
+            )}
+        </div>
+    );
+};
+
+ThemedLogLineView.propTypes = {
+    classes: PropTypes.object.isRequired,
+    className: PropTypes.string,
+    event: PropTypes.object.isRequired,
+    isSelected: PropTypes.bool,
+    isMoreInfoOpen: PropTypes.bool.isRequired,
+    isMessageContained: PropTypes.bool.isRequired,
+    cause: PropTypes.string.isRequired,
+    hasMoreInfo: PropTypes.bool.isRequired,
+    toggleMoreInfo: PropTypes.func.isRequired,
+};
+
+ThemedLogLineView.defaultProps = {
+    className: '',
+    isSelected: false,
+};
 
 LogLineView.propTypes = {
     classes: PropTypes.object.isRequired,
