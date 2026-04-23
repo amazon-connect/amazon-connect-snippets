@@ -180,8 +180,13 @@ handlers.API_REPLY = (input, matched, pattern) => {
     // eslint-disable-next-line prefer-destructuring
     output.status = matched[2];
     output.text = `${matched[2] === 'succeeded' ? '✔ ' : '❗ '}${pattern.messages} '${matched[1]}' ${matched[2]}`;
-    if (matched[2] === 'failed') {
-        output.objects = [JSON.parse(matched[3])];
+    if (matched[2] === 'failed' && matched[3]) {
+        try {
+            output.objects = [JSON.parse(matched[3])];
+        } catch (e) {
+            console.warn('Failed to parse API error details:', matched[3]);
+            output.objects = [{ error: matched[3] }];
+        }
         output.highlight = true;
     }
     if (!index.latency.has(matched[1])) {

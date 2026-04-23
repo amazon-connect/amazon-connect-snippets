@@ -162,7 +162,11 @@ class App extends React.Component {
             'text/plain',
             'application/json',
         ];
-        if (!allowedTypes.includes(files[0].type)) {
+        // Allow files with .json extension even if MIME type is not detected correctly
+        const fileName = files[0].name.toLowerCase();
+        const isJsonFile = fileName.endsWith('.json') || fileName.endsWith('.txt');
+
+        if (!allowedTypes.includes(files[0].type) && !isJsonFile) {
             // eslint-disable-next-line no-alert
             alert(`Error in processing ${files[0].name}: ${files[0].type} is not a supported file type.`);
             return;
@@ -172,13 +176,31 @@ class App extends React.Component {
             try {
                 resetIndex(); // rebuild the index for this file
                 resetSoftphoneMetrics();// rebuild the SoftPhone metric for this file
-                this.onLoadLog(JSON.parse(e.target.result));
+
+                const content = e.target.result;
+                if (!content) {
+                    throw new Error('File content is empty or could not be read');
+                }
+
+                // Trim any whitespace and check if content starts with valid JSON
+                const trimmedContent = content.trim();
+                if (!trimmedContent || (!trimmedContent.startsWith('[') && !trimmedContent.startsWith('{'))) {
+                    throw new Error('File does not contain valid JSON data');
+                }
+
+                this.onLoadLog(JSON.parse(trimmedContent));
             } catch (error) {
+                console.error('Error parsing file:', error);
                 // eslint-disable-next-line no-alert
-                alert(`I failed to load the file ${files[0].name}: ${error}`);
+                alert(`Failed to load the file ${files[0].name}: ${error.message}`);
             }
         };
         reader.onloadend = () => { this.setState({ isLoading: false }); };
+        reader.onerror = () => {
+            this.setState({ isLoading: false });
+            // eslint-disable-next-line no-alert
+            alert(`Failed to read the file ${files[0].name}`);
+        };
 
         this.setState({ isLoading: true, filename: files[0].name });
         reader.readAsText(files[0]);
@@ -194,11 +216,20 @@ class App extends React.Component {
 
     onLoadLog(log) {
         const rearrangedLog = log
-            .map((event, idx) => (
-                { ...event, _oriKey: idx, _ts: new Date(event.time).getTime() }
-            ))
+            .map((event, idx) => {
+                if (!event || !event.time) {
+                    console.warn('Invalid event at index', idx, event);
+                    return null;
+                }
+                return { ...event, _oriKey: idx, _ts: new Date(event.time).getTime() };
+            })
+            .filter((event) => event !== null)
             .sort((a, b) => (a._ts === b._ts ? a._oriKey - b._oriKey : a._ts - b._ts))
             .map((event, idx) => findExtras(event, idx));
+
+        if (rearrangedLog.length === 0) {
+            throw new Error('No valid log entries found');
+        }
 
         const timeRange = [rearrangedLog[0]._ts, rearrangedLog[rearrangedLog.length - 1]._ts];
 
