@@ -15,7 +15,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
+import { useTheme } from './ThemeContext';
 
 const styles = (theme) => ({
     root: {
@@ -38,30 +40,44 @@ const styles = (theme) => ({
     },
     icon: {
         fontSize: 160,
-        color: 'rgba(0,0,0,0.25)',
     },
-    text: {
-        color: 'rgba(0,0,0,0.5)',
-    },
+    text: {},
 });
 
 const EmptyView = (props) => {
-    const { classes } = props;
+    const { classes, onClick } = props;
 
     return (
-        <div className={classes.root}>
+        <ThemedEmptyView classes={classes} onClick={onClick} />
+    );
+};
+
+const ThemedEmptyView = ({ classes, onClick }) => {
+    const { theme } = useTheme();
+
+    return (
+        <div className={classes.root} style={{ backgroundColor: theme.colors.background }}>
             <div className={classes.container}>
-                <SaveAltIcon className={classes.icon} />
-                <Typography className={classes.text} variant="h5" component="h3">
+                <SaveAltIcon className={classes.icon} style={{ color: theme.colors.iconSecondary }} />
+                <Typography className={classes.text} variant="h5" component="h3" style={{ color: theme.colors.textMuted }}>
                     Drag &amp; Drop your CCP log file to load
                 </Typography>
+                <Button variant="contained" color="primary" onClick={onClick} style={{ marginTop: 16 }}>
+                    Select File
+                </Button>
             </div>
         </div>
     );
 };
 
+ThemedEmptyView.propTypes = {
+    classes: PropTypes.object.isRequired,
+    onClick: PropTypes.func.isRequired,
+};
+
 EmptyView.propTypes = {
     classes: PropTypes.object.isRequired,
+    onClick: PropTypes.func.isRequired,
 };
 
 export default withStyles(styles)(EmptyView);

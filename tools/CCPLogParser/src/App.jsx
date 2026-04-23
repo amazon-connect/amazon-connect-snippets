@@ -26,8 +26,12 @@ import Tab from '@material-ui/core/Tab';
 import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
+import IconButton from '@material-ui/core/IconButton';
 import DescriptionIcon from '@material-ui/icons/Description';
 import FeedbackIcon from '@material-ui/icons/Feedback';
+import Brightness4Icon from '@material-ui/icons/Brightness4';
+import Brightness7Icon from '@material-ui/icons/Brightness7';
+import { ThemeProvider, useTheme } from './ThemeContext';
 import './App.css';
 import pkg from '../package.json';
 import EmptyView from './EmptyView';
@@ -35,9 +39,8 @@ import DraggingView from './DraggingView';
 import LoadingView from './LoadingView';
 import SnapshotListView from './SnapshotListView';
 import LogView from './LogView';
-import SkewMetricsView from './SkewMetricsView';
-import ApiCallMetricsView from './ApiCallMetricsView';
 import RtcMetricsViewGroup from './RtcMetricsViewGroup';
+import ThemedMetricsView from './ThemedMetricsView';
 
 import {
     buildIndex, findExtras, resetIndex, hasSoftphoneMetrics, resetSoftphoneMetrics,
@@ -58,7 +61,7 @@ function TabPanel(props) {
             {...other}
         >
             {value === index && (
-                <Container>
+                <Container maxWidth={false}>
                     <Box>{children}</Box>
                 </Container>
             )}
@@ -84,13 +87,15 @@ function a11yProps(index) {
 const styles = (theme) => ({
     root: {
         flexGrow: 1,
-        backgroundColor: '#f5f5f5',
+        paddingTop: theme.mixins.toolbar.minHeight + 48, // Account for AppBar + Tabs height
     },
-    appbar: {
-        backgroundColor: '#26303b',
-    },
+    appbar: {},
     title: {
         flexGrow: 1,
+    },
+    themeToggle: {
+        marginLeft: theme.spacing(1),
+        color: 'white',
     },
     feedbackLink: {
         '& a': {
@@ -107,13 +112,15 @@ const styles = (theme) => ({
             display: 'block',
         },
     },
-    tab: {
-        backgroundColor: '#2e3a48',
-    },
+    tab: {},
     content: {
         zIndex: 2,
         paddingTop: theme.spacing(2),
         paddingBottom: theme.spacing(2),
+    },
+    scrollableContainer: {
+        height: `calc(100vh - ${theme.mixins.toolbar.minHeight + 48 + theme.spacing(4)}px)`,
+        overflow: 'hidden', // Prevent content from showing through
     },
     leftIcon: {
         marginRight: theme.spacing(1),
@@ -122,6 +129,21 @@ const styles = (theme) => ({
         marginLeft: theme.spacing(1),
     },
 });
+
+const ThemeToggle = ({ classes }) => {
+    const { currentTheme, toggleTheme } = useTheme();
+    const isDark = currentTheme === 'dark';
+
+    return (
+        <IconButton className={classes.themeToggle} onClick={toggleTheme} size="small" title={isDark ? 'Light mode' : 'Dark mode'}>
+            {isDark ? <Brightness7Icon /> : <Brightness4Icon />}
+        </IconButton>
+    );
+};
+
+ThemeToggle.propTypes = {
+    classes: PropTypes.object.isRequired,
+};
 
 class App extends React.Component {
     constructor(props) {
@@ -132,6 +154,7 @@ class App extends React.Component {
         this.handleChangeTab = this.handleChangeTab.bind(this);
         this.handleOnDrop = this.handleOnDrop.bind(this);
         this.handleExpandLogView = this.handleExpandLogView.bind(this);
+        this.handleClickLogLine = this.handleClickLogLine.bind(this);
         this.dropzoneRef = createRef();
 
         if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -162,7 +185,11 @@ class App extends React.Component {
             'text/plain',
             'application/json',
         ];
-        if (!allowedTypes.includes(files[0].type)) {
+        // Allow files with .json extension even if MIME type is not detected correctly
+        const fileName = files[0].name.toLowerCase();
+        const isJsonFile = fileName.endsWith('.json') || fileName.endsWith('.txt');
+
+        if (!allowedTypes.includes(files[0].type) && !isJsonFile) {
             // eslint-disable-next-line no-alert
             alert(`Error in processing ${files[0].name}: ${files[0].type} is not a supported file type.`);
             return;
@@ -172,13 +199,31 @@ class App extends React.Component {
             try {
                 resetIndex(); // rebuild the index for this file
                 resetSoftphoneMetrics();// rebuild the SoftPhone metric for this file
-                this.onLoadLog(JSON.parse(e.target.result));
+
+                const content = e.target.result;
+                if (!content) {
+                    throw new Error('File content is empty or could not be read');
+                }
+
+                // Trim any whitespace and check if content starts with valid JSON
+                const trimmedContent = content.trim();
+                if (!trimmedContent || (!trimmedContent.startsWith('[') && !trimmedContent.startsWith('{'))) {
+                    throw new Error('File does not contain valid JSON data');
+                }
+
+                this.onLoadLog(JSON.parse(trimmedContent));
             } catch (error) {
+                console.error('Error parsing file:', error);
                 // eslint-disable-next-line no-alert
-                alert(`I failed to load the file ${files[0].name}: ${error}`);
+                alert(`Failed to load the file ${files[0].name}: ${error.message}`);
             }
         };
         reader.onloadend = () => { this.setState({ isLoading: false }); };
+        reader.onerror = () => {
+            this.setState({ isLoading: false });
+            // eslint-disable-next-line no-alert
+            alert(`Failed to read the file ${files[0].name}`);
+        };
 
         this.setState({ isLoading: true, filename: files[0].name });
         reader.readAsText(files[0]);
@@ -194,19 +239,62 @@ class App extends React.Component {
 
     onLoadLog(log) {
         const rearrangedLog = log
-            .map((event, idx) => (
-                { ...event, _oriKey: idx, _ts: new Date(event.time).getTime() }
-            ))
+            .map((event, idx) => {
+                if (!event || !event.time) {
+                    console.warn('Invalid event at index', idx, event);
+                    return null;
+                }
+                return { ...event, _oriKey: idx, _ts: new Date(event.time).getTime() };
+            })
+            .filter((event) => event !== null)
             .sort((a, b) => (a._ts === b._ts ? a._oriKey - b._oriKey : a._ts - b._ts))
             .map((event, idx) => findExtras(event, idx));
 
+        if (rearrangedLog.length === 0) {
+            throw new Error('No valid log entries found');
+        }
+
         const timeRange = [rearrangedLog[0]._ts, rearrangedLog[rearrangedLog.length - 1]._ts];
+
+        // Compute snapshots and reverse lookup map (logKey → snapshot)
+        const snapshots = rearrangedLog
+            .filter((event) => (event.text === 'GET_AGENT_SNAPSHOT succeeded.'))
+            .flatMap((event) => event.objects.map((object, idx) => ({
+                ...object.snapshot,
+                _event: event,
+                _key: `${event._key}-${idx}`,
+                _date: object.snapshot.snapshotTimestamp.substring(0, 10),
+                _time: object.snapshot.snapshotTimestamp.substring(11, 23),
+                _timezone: object.snapshot.snapshotTimestamp.substring(23),
+            })))
+            .map((snapshot, idx, arr) => {
+                const eventKeyFrom = snapshot._event._key;
+                const eventKeyTo = (idx !== arr.length - 1)
+                    ? arr[idx + 1]._event._key
+                    : rearrangedLog[rearrangedLog.length - 1]._key;
+                return {
+                    ...snapshot,
+                    _targetEventKeys: Array.from(
+                        Array(eventKeyTo - eventKeyFrom),
+                        (v, k) => (k + eventKeyFrom),
+                    ),
+                };
+            });
+
+        const logKeyToSnapshot = {};
+        snapshots.forEach((snapshot) => {
+            snapshot._targetEventKeys.forEach((key) => {
+                logKeyToSnapshot[key] = snapshot;
+            });
+        });
 
         this.setState({
             isInitial: false,
             // eslint-disable-next-line react/no-unused-state
             originalLog: log.map((event, idx) => ({ ...event, _oriKey: idx })),
             log: rearrangedLog,
+            snapshots,
+            logKeyToSnapshot,
             selectedLog: [],
             selectedSnapshots: [],
             indexedLogs: buildIndex(),
@@ -223,6 +311,21 @@ class App extends React.Component {
         this.setState({ selectedSnapshots });
     }
 
+    handleClickLogLine(eventKey) {
+        const { logKeyToSnapshot } = this.state;
+        const snapshot = logKeyToSnapshot[eventKey];
+        if (snapshot) {
+            this.selectLog(snapshot._targetEventKeys);
+            this.selectSnapshots([snapshot._key]);
+            setTimeout(() => {
+                const el = document.getElementById(`snapshot-${snapshot._key}`);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'auto', block: 'center' });
+                }
+            }, 0);
+        }
+    }
+
     render() {
         const {
             tabIndex,
@@ -231,6 +334,7 @@ class App extends React.Component {
             isExpanded,
             filename,
             log,
+            snapshots,
             selectedLog,
             selectedSnapshots,
             indexedLogs,
@@ -240,34 +344,106 @@ class App extends React.Component {
         const { classes } = this.props;
 
         return (
-            <NorthStarThemeProvider>
-                <div className={classes.root}>
-                    <Dropzone
-                        ref={this.dropzoneRef}
-                        disableClick
-                        noClick
-                        onDrop={this.handleOnDrop}
-                    >
-                        {({ getRootProps, isDragActive }) => (
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            <div {...getRootProps()}>
-                                <AppBar position="static" className={classes.appbar}>
+            <ThemeProvider>
+                <ThemedApp
+                    classes={classes}
+                    tabIndex={tabIndex}
+                    isInitial={isInitial}
+                    isLoading={isLoading}
+                    isExpanded={isExpanded}
+                    filename={filename}
+                    log={log}
+                    snapshots={snapshots}
+                    selectedLog={selectedLog}
+                    selectedSnapshots={selectedSnapshots}
+                    indexedLogs={indexedLogs}
+                    hasRtcMetrics={hasRtcMetrics}
+                    timeRange={timeRange}
+                    handleChangeTab={this.handleChangeTab}
+                    handleOnDrop={this.handleOnDrop}
+                    handleExpandLogView={this.handleExpandLogView}
+                    selectLog={this.selectLog}
+                    selectSnapshots={this.selectSnapshots}
+                    handleClickLogLine={this.handleClickLogLine}
+                    dropzoneRef={this.dropzoneRef}
+                />
+            </ThemeProvider>
+        );
+    }
+}
+
+const ThemedApp = ({
+    classes,
+    tabIndex,
+    isInitial,
+    isLoading,
+    isExpanded,
+    filename,
+    log,
+    snapshots,
+    selectedLog,
+    selectedSnapshots,
+    indexedLogs,
+    hasRtcMetrics,
+    timeRange,
+    handleChangeTab,
+    handleOnDrop,
+    handleExpandLogView,
+    selectLog,
+    selectSnapshots,
+    handleClickLogLine,
+    dropzoneRef,
+}) => {
+    const { theme } = useTheme();
+
+    const themedStyles = {
+        root: {
+            backgroundColor: theme.colors.background,
+            minHeight: '100vh',
+        },
+        appbar: {
+            backgroundColor: theme.colors.appBar,
+        },
+        tab: {
+            backgroundColor: theme.colors.tabs,
+        },
+    };
+
+    return (
+        <NorthStarThemeProvider>
+            <div className={classes.root} style={themedStyles.root}>
+                <Dropzone
+                    ref={dropzoneRef}
+                    disableClick
+                    noClick
+                    onDrop={handleOnDrop}
+                >
+                    {
+                        (
+                            {
+                                getRootProps, getInputProps, isDragActive, open,
+                            },
+                        ) => (
+                            <div {...getRootProps({ onClick: (evt) => evt.preventDefault() })} style={{ outline: 'none' }}>
+                                <input {...getInputProps()} />
+                                <AppBar position="fixed" className={classes.appbar} style={themedStyles.appbar}>
                                     <Toolbar variant="dense">
                                         <Typography variant="h6" color="inherit" className={classes.title}>
                                             CCP Log Parser
-                                            { filename && (
+                                            {filename && (
                                                 <span>
                                                     &nbsp;:&nbsp;
                                                     {filename}
                                                 </span>
-                                            ) }
+                                            )}
+
                                         </Typography>
                                         <Typography color="inherit" className={classes.feedbackLink}>
                                             <Link
                                                 href="https://github.com/amazon-connect/amazon-connect-snippets/blob/master/tools/CCPLogParser/CHANGELOG.md"
                                                 target="_blank"
                                                 rel="noopener"
-                                                onClick={(e) => e.preventDefault}
+                                                onClick={(e) => e.preventDefault()}
                                             >
                                                 Version:
                                                 {' '}
@@ -279,7 +455,7 @@ class App extends React.Component {
                                                 href="https://github.com/amazon-connect/amazon-connect-snippets/blob/master/tools/CCPLogParser/README.md"
                                                 target="_blank"
                                                 rel="noopener"
-                                                onClick={(e) => e.preventDefault}
+                                                onClick={(e) => e.preventDefault()}
                                             >
                                                 <DescriptionIcon className={classes.leftIcon} />
                                                 User Guide
@@ -290,65 +466,76 @@ class App extends React.Component {
                                                 href="https://github.com/amazon-connect/amazon-connect-snippets/issues"
                                                 target="_blank"
                                                 rel="noopener"
-                                                onClick={(e) => e.preventDefault}
+                                                onClick={(e) => e.preventDefault()}
                                             >
                                                 <FeedbackIcon className={classes.leftIcon} />
                                                 Send Feedback
                                             </Link>
                                         </Typography>
+                                        <ThemeToggle classes={classes} />
                                     </Toolbar>
-                                    { (!isInitial && !isLoading) && (
-                                        <Tabs className={classes.tab} value={tabIndex} onChange={this.handleChangeTab} centered aria-label="tabs">
-                                            {/* eslint-disable-next-line max-len */}
+                                    {(!isInitial && !isLoading) && (
+                                        <Tabs
+                                            className={classes.tab}
+                                            style={themedStyles.tab}
+                                            value={tabIndex}
+                                            onChange={handleChangeTab}
+                                            centered
+                                            aria-label="tabs"
+                                        >
                                             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                                             <Tab label="Snapshots &amp; Logs" {...a11yProps(0)} />
-                                            {/* eslint-disable-next-line max-len */}
                                             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                                             <Tab label="Metrics" {...a11yProps(1)} />
                                         </Tabs>
-                                    ) }
+                                    )}
                                 </AppBar>
 
-                                { isDragActive && <DraggingView /> }
+                                {isDragActive && <DraggingView />}
 
-                                { (isInitial && !isLoading) && <EmptyView /> }
-                                { isLoading && <LoadingView /> }
-                                { (!isInitial && !isLoading) && (
+                                {(isInitial && !isLoading) && <EmptyView onClick={open} />}
+                                {isLoading && <LoadingView />}
+                                {(!isInitial && !isLoading) && (
                                     <>
                                         <TabPanel value={tabIndex} index={0}>
-                                            <Container className={classes.content}>
+                                            <Container maxWidth={false} className={classes.content}>
                                                 <Grid container spacing={2}>
-                                                    <Grid item xs={12} md={3} style={isExpanded ? { display: 'none' } : {}}>
+                                                    <Grid item xs={12} md={3} style={isExpanded ? { display: 'none' } : {}} className={classes.scrollableContainer}>
                                                         <SnapshotListView
                                                             log={log}
+                                                            snapshots={snapshots}
                                                             selected={selectedSnapshots}
-                                                            selectLog={this.selectLog}
-                                                            selectSnapshots={this.selectSnapshots}
+                                                            selectLog={selectLog}
+                                                            selectSnapshots={selectSnapshots}
                                                         />
                                                     </Grid>
-                                                    <Grid item xs={12} md={9} style={isExpanded ? { minWidth: '100%', maxWidth: '100%' } : {}}>
+                                                    <Grid
+                                                        item
+                                                        xs={12}
+                                                        md={9}
+                                                        style={isExpanded ? { minWidth: '100%', maxWidth: '100%' } : {}}
+                                                        className={classes.scrollableContainer}
+                                                    >
                                                         <LogView
                                                             log={log}
                                                             selected={selectedLog}
                                                             isExpanded={isExpanded}
-                                                            expand={this.handleExpandLogView}
+                                                            expand={handleExpandLogView}
+                                                            onClickLogLine={handleClickLogLine}
                                                         />
                                                     </Grid>
                                                 </Grid>
                                             </Container>
                                         </TabPanel>
                                         <TabPanel value={tabIndex} index={1}>
-                                            <Container className={classes.content}>
+                                            <Container maxWidth={false} className={classes.content}>
                                                 <Grid container spacing={2}>
                                                     <Grid item xs={12}>
-                                                        <SkewMetricsView
-                                                            log={log}
-                                                        />
-                                                        <ApiCallMetricsView
+                                                        <ThemedMetricsView
                                                             log={log}
                                                             indexedLogs={indexedLogs}
                                                         />
-                                                        { hasRtcMetrics && (
+                                                        {hasRtcMetrics && (
                                                             <RtcMetricsViewGroup
                                                                 timeRange={timeRange}
                                                             />
@@ -358,15 +545,46 @@ class App extends React.Component {
                                             </Container>
                                         </TabPanel>
                                     </>
-                                ) }
+                                )}
                             </div>
-                        )}
-                    </Dropzone>
-                </div>
-            </NorthStarThemeProvider>
-        );
-    }
-}
+                        )
+                    }
+                </Dropzone>
+            </div>
+        </NorthStarThemeProvider>
+    );
+};
+
+ThemedApp.propTypes = {
+    classes: PropTypes.object.isRequired,
+    tabIndex: PropTypes.number.isRequired,
+    isInitial: PropTypes.bool.isRequired,
+    isLoading: PropTypes.bool.isRequired,
+    isExpanded: PropTypes.bool.isRequired,
+    filename: PropTypes.string,
+    log: PropTypes.array.isRequired,
+    snapshots: PropTypes.array,
+    selectedLog: PropTypes.array.isRequired,
+    selectedSnapshots: PropTypes.array.isRequired,
+    indexedLogs: PropTypes.object,
+    hasRtcMetrics: PropTypes.bool,
+    timeRange: PropTypes.array,
+    handleChangeTab: PropTypes.func.isRequired,
+    handleOnDrop: PropTypes.func.isRequired,
+    handleExpandLogView: PropTypes.func.isRequired,
+    selectLog: PropTypes.func.isRequired,
+    selectSnapshots: PropTypes.func.isRequired,
+    handleClickLogLine: PropTypes.func.isRequired,
+    dropzoneRef: PropTypes.object.isRequired,
+};
+
+ThemedApp.defaultProps = {
+    filename: null,
+    snapshots: [],
+    indexedLogs: null,
+    hasRtcMetrics: false,
+    timeRange: null,
+};
 
 App.propTypes = {
     classes: PropTypes.object.isRequired,
